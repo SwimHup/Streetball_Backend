@@ -1,44 +1,26 @@
 package com.example.streetball_backend.User;
 
-import jakarta.persistence.*;
-import org.hibernate.annotations.CreationTimestamp;
-
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "User")
-public class User {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "user_id")
+public class UserResponse {
     private Integer userId;
-
-    @Column(name = "name", nullable = false, length = 100)
     private String name;
-
-    @Column(name = "location_lat")
     private Double locationLat;
-
-    @Column(name = "location_lng")
     private Double locationLng;
-
-    @Column(name = "has_ball", nullable = false, columnDefinition = "BOOLEAN DEFAULT false")
-    private Boolean hasBall = false;
-
-    @CreationTimestamp
-    @Column(name = "created_at", updatable = false)
+    private Boolean hasBall;
     private LocalDateTime createdAt;
 
     // Constructors
-    public User() {
+    public UserResponse() {
     }
 
-    public User(String name, Double locationLat, Double locationLng, Boolean hasBall) {
-        this.name = name;
-        this.locationLat = locationLat;
-        this.locationLng = locationLng;
-        this.hasBall = hasBall;
+    public UserResponse(User user) {
+        this.userId = user.getUserId();
+        this.name = user.getName();
+        this.locationLat = user.getLocationLat();
+        this.locationLng = user.getLocationLng();
+        this.hasBall = user.getHasBall();
+        this.createdAt = user.getCreatedAt();
     }
 
     // Getters and Setters
@@ -90,3 +72,4 @@ public class User {
         this.createdAt = createdAt;
     }
 }
+

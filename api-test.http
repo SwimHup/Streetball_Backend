@@ -1,0 +1,167 @@
+### Street Basketball API 테스트
+### IntelliJ IDEA나 VS Code의 REST Client 플러그인으로 실행할 수 있습니다
+
+@baseUrl = http://localhost:8080/api
+
+### ============================================
+### User API 테스트
+### ============================================
+
+### 1. 사용자 생성
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{
+  "name": "김철수",
+  "locationLat": 37.5665,
+  "locationLng": 126.9780,
+  "hasBall": true
+}
+
+### 2. 두 번째 사용자 생성
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{
+  "name": "이영희",
+  "locationLat": 37.5660,
+  "locationLng": 126.9785,
+  "hasBall": false
+}
+
+### 3. 모든 사용자 조회
+GET {{baseUrl}}/users
+
+### 4. 특정 사용자 조회 (userId = 1)
+GET {{baseUrl}}/users/1
+
+### 5. 사용자 위치 업데이트 (userId = 1)
+PATCH {{baseUrl}}/users/1/location
+Content-Type: application/json
+
+{
+  "locationLat": 37.5670,
+  "locationLng": 126.9790
+}
+
+### 6. 사용자 정보 업데이트 (userId = 1)
+PUT {{baseUrl}}/users/1
+Content-Type: application/json
+
+{
+  "name": "김철수(수정)",
+  "locationLat": 37.5675,
+  "locationLng": 126.9795,
+  "hasBall": false
+}
+
+### ============================================
+### Court 생성 (직접 DB에 삽입 필요 - 아래 SQL 참고)
+### ============================================
+# SQL 예시:
+# INSERT INTO Court (court_name, location_lat, location_lng, is_indoor) 
+# VALUES ('강남 농구장', 37.5665, 126.9780, false);
+#
+# INSERT INTO Court (court_name, location_lat, location_lng, is_indoor) 
+# VALUES ('잠실 체육관', 37.5145, 127.1025, true);
+
+### ============================================
+### Game API 테스트
+### ============================================
+
+### 1. 게임 생성 (courtId=1, creatorUserId=1 필요)
+POST {{baseUrl}}/games
+Content-Type: application/json
+
+{
+  "courtId": 1,
+  "creatorUserId": 1,
+  "maxPlayers": 10,
+  "scheduledTime": "2025-11-25T14:00:00"
+}
+
+### 2. 두 번째 게임 생성
+POST {{baseUrl}}/games
+Content-Type: application/json
+
+{
+  "courtId": 1,
+  "creatorUserId": 2,
+  "maxPlayers": 8,
+  "scheduledTime": "2025-11-25T16:00:00"
+}
+
+### 3. 모든 게임 조회
+GET {{baseUrl}}/games
+
+### 4. 특정 게임 조회 (gameId = 1)
+GET {{baseUrl}}/games/1
+
+### 5. 근처 게임 검색 (강남 근처, 반경 5km)
+GET {{baseUrl}}/games/nearby?lat=37.5665&lng=126.9780&radius=5
+
+### 6. 근처 게임 검색 (잠실 근처, 반경 10km)
+GET {{baseUrl}}/games/nearby?lat=37.5145&lng=127.1025&radius=10
+
+### 7. '모집 중' 상태 게임 조회
+GET {{baseUrl}}/games/status/모집_중
+
+### 8. 게임 상태 업데이트 (gameId = 1, 모집 완료로 변경)
+PATCH {{baseUrl}}/games/1/status?status=모집_완료
+
+### 9. 게임 상태 업데이트 (게임 종료로 변경)
+PATCH {{baseUrl}}/games/1/status?status=게임_종료
+
+### 10. 게임 삭제 (gameId = 2)
+DELETE {{baseUrl}}/games/2
+
+### ============================================
+### 통합 테스트 시나리오
+### ============================================
+
+### 시나리오 1: 사용자 생성 -> 게임 생성 -> 근처 게임 검색
+
+# 1단계: 사용자 생성
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{
+  "name": "박민수",
+  "locationLat": 37.5665,
+  "locationLng": 126.9780,
+  "hasBall": true
+}
+
+# 2단계: 게임 생성 (위에서 생성된 userId 사용)
+# POST {{baseUrl}}/games
+# {
+#   "courtId": 1,
+#   "creatorUserId": 3,
+#   "maxPlayers": 10,
+#   "scheduledTime": "2025-11-25T18:00:00"
+# }
+
+# 3단계: 근처 게임 검색
+# GET {{baseUrl}}/games/nearby?lat=37.5665&lng=126.9780&radius=5
+
+### ============================================
+### 에러 테스트
+### ============================================
+
+### 존재하지 않는 사용자 조회
+GET {{baseUrl}}/users/999
+
+### 존재하지 않는 게임 조회
+GET {{baseUrl}}/games/999
+
+### 잘못된 데이터로 게임 생성 (존재하지 않는 courtId)
+POST {{baseUrl}}/games
+Content-Type: application/json
+
+{
+  "courtId": 999,
+  "creatorUserId": 1,
+  "maxPlayers": 10,
+  "scheduledTime": "2025-11-25T14:00:00"
+}
+
