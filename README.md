@@ -177,31 +177,7 @@ DELETE /api/games/{gameId}
 - 사용자의 현재 위치(위도, 경도)를 업데이트
 - 근처 게임 검색의 기준이 되는 정보
 
-## 데이터베이스 설정
 
-`application.yml`에서 데이터베이스 연결 정보를 설정합니다:
-
-```yaml
-spring:
-  datasource:
-    url: jdbc:mysql://192.168.1.155:3306/street-ball?serverTimezone=Asia/Seoul&useSSL=false&allowPublicKeyRetrieval=true
-    username: root1234
-    password: pw1234
-    driver-class-name: com.mysql.cj.jdbc.Driver
-
-  jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: true
-```
-
-## 데이터베이스 초기화
-
-`DB_schema.sql` 파일을 실행하여 테이블 및 트리거를 생성합니다:
-
-```bash
-mysql -u root1234 -p street-ball < DB_schema.sql
-```
 
 ## 빌드 및 실행
 
