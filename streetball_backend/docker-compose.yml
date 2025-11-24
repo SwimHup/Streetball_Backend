@@ -1,0 +1,20 @@
+version: "3.8"
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: street-ball
+    environment:
+      MYSQL_ROOT_PASSWORD: pw1234
+      MYSQL_DATABASE: street-ball
+      MYSQL_USER: root1234
+      MYSQL_PASSWORD: pw1234
+    ports:
+      - "3306:3306"
+    command: --default-authentication-plugin=mysql_native_password
+    volumes:
+      - dbdata:/var/lib/mysql
+      - ./initdb:/docker-entrypoint-initdb.d:ro
+
+volumes:
+  dbdata:
