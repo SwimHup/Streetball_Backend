@@ -1,5 +1,10 @@
 package com.example.streetball_backend.Game;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -9,27 +14,29 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/games")
+@Tag(name = "Game", description = "게임 관리 API")
 public class GameController {
 
     @Autowired
     private GameService gameService;
 
-    /**
-     * 모든 게임 조회
-     * GET /api/games
-     */
+    @Operation(summary = "모든 게임 조회", description = "시스템에 등록된 모든 게임 목록을 조회합니다.")
+    @ApiResponse(responseCode = "200", description = "조회 성공")
     @GetMapping
     public ResponseEntity<List<GameResponse>> getAllGames() {
         List<GameResponse> games = gameService.getAllGames();
         return ResponseEntity.ok(games);
     }
 
-    /**
-     * ID로 게임 조회
-     * GET /api/games/{gameId}
-     */
+    @Operation(summary = "게임 ID로 조회", description = "특정 게임의 상세 정보를 조회합니다.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "조회 성공"),
+        @ApiResponse(responseCode = "404", description = "게임을 찾을 수 없음")
+    })
     @GetMapping("/{gameId}")
-    public ResponseEntity<GameResponse> getGameById(@PathVariable Integer gameId) {
+    public ResponseEntity<GameResponse> getGameById(
+            @Parameter(description = "게임 ID", required = true, example = "1")
+            @PathVariable Integer gameId) {
         try {
             GameResponse game = gameService.getGameById(gameId);
             return ResponseEntity.ok(game);
@@ -38,12 +45,15 @@ public class GameController {
         }
     }
 
-    /**
-     * 새 게임 생성 (핵심 기능)
-     * POST /api/games
-     */
+    @Operation(summary = "새 게임 생성 ⭐", description = "새로운 게임을 생성하고 생성자를 자동으로 'player' 역할로 참여시킵니다.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "201", description = "생성 성공"),
+        @ApiResponse(responseCode = "400", description = "잘못된 요청 (courtId 또는 creatorUserId가 존재하지 않음)")
+    })
     @PostMapping
-    public ResponseEntity<GameResponse> createGame(@RequestBody GameCreationRequest request) {
+    public ResponseEntity<GameResponse> createGame(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "게임 생성 정보", required = true)
+            @RequestBody GameCreationRequest request) {
         try {
             GameResponse createdGame = gameService.createGame(request);
             return ResponseEntity.status(HttpStatus.CREATED).body(createdGame);
@@ -52,14 +62,15 @@ public class GameController {
         }
     }
 
-    /**
-     * 근처 게임 검색 (핵심 기능)
-     * GET /api/games/nearby?lat={lat}&lng={lng}&radius={radius}
-     */
+    @Operation(summary = "근처 게임 검색 ⭐", description = "현재 위치에서 지정된 반경 내의 '모집 중' 게임을 검색합니다. Haversine 공식을 사용하여 정확한 거리를 계산합니다.")
+    @ApiResponse(responseCode = "200", description = "검색 성공")
     @GetMapping("/nearby")
     public ResponseEntity<List<GameResponse>> getNearbyGames(
+            @Parameter(description = "현재 위치의 위도", required = true, example = "37.5665")
             @RequestParam Double lat,
+            @Parameter(description = "현재 위치의 경도", required = true, example = "126.9780")
             @RequestParam Double lng,
+            @Parameter(description = "검색 반경 (km)", example = "5")
             @RequestParam(defaultValue = "5") Integer radius) {
         try {
             List<GameResponse> nearbyGames = gameService.findNearbyGames(lat, lng, radius);
@@ -69,13 +80,16 @@ public class GameController {
         }
     }
 
-    /**
-     * 게임 상태 업데이트
-     * PATCH /api/games/{gameId}/status
-     */
+    @Operation(summary = "게임 상태 업데이트", description = "게임의 상태를 변경합니다. (모집_중, 모집_완료, 게임_종료)")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "업데이트 성공"),
+        @ApiResponse(responseCode = "404", description = "게임을 찾을 수 없음")
+    })
     @PatchMapping("/{gameId}/status")
     public ResponseEntity<GameResponse> updateGameStatus(
+            @Parameter(description = "게임 ID", required = true, example = "1")
             @PathVariable Integer gameId,
+            @Parameter(description = "새 게임 상태", required = true, example = "모집_완료")
             @RequestParam GameStatus status) {
         try {
             GameResponse updatedGame = gameService.updateGameStatus(gameId, status);
@@ -85,12 +99,15 @@ public class GameController {
         }
     }
 
-    /**
-     * 게임 삭제
-     * DELETE /api/games/{gameId}
-     */
+    @Operation(summary = "게임 삭제", description = "게임을 시스템에서 삭제합니다.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "204", description = "삭제 성공"),
+        @ApiResponse(responseCode = "404", description = "게임을 찾을 수 없음")
+    })
     @DeleteMapping("/{gameId}")
-    public ResponseEntity<Void> deleteGame(@PathVariable Integer gameId) {
+    public ResponseEntity<Void> deleteGame(
+            @Parameter(description = "게임 ID", required = true, example = "1")
+            @PathVariable Integer gameId) {
         try {
             gameService.deleteGame(gameId);
             return ResponseEntity.noContent().build();
@@ -99,12 +116,12 @@ public class GameController {
         }
     }
 
-    /**
-     * 특정 상태의 게임 목록 조회
-     * GET /api/games/status/{status}
-     */
+    @Operation(summary = "특정 상태의 게임 목록 조회", description = "특정 상태(모집_중, 모집_완료, 게임_종료)의 게임 목록을 조회합니다.")
+    @ApiResponse(responseCode = "200", description = "조회 성공")
     @GetMapping("/status/{status}")
-    public ResponseEntity<List<GameResponse>> getGamesByStatus(@PathVariable GameStatus status) {
+    public ResponseEntity<List<GameResponse>> getGamesByStatus(
+            @Parameter(description = "게임 상태", required = true, example = "모집_중")
+            @PathVariable GameStatus status) {
         List<GameResponse> games = gameService.getGamesByStatus(status);
         return ResponseEntity.ok(games);
     }
