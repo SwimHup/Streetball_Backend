@@ -1,5 +1,6 @@
 package com.example.streetball_backend.User;
 
+import com.example.streetball_backend.config.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -16,6 +17,9 @@ public class UserService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private JwtUtil jwtUtil;
 
     /**
      * 모든 사용자 조회
@@ -60,7 +64,7 @@ public class UserService {
 
     /**
      * 로그인 (핵심 기능)
-     * 로그인 시 위치 정보도 함께 업데이트
+     * 로그인 시 위치 정보도 함께 업데이트하고 JWT 토큰 발급
      */
     @Transactional
     public LoginResponse login(LoginRequest request) {
@@ -80,7 +84,10 @@ public class UserService {
             userRepository.save(user);
         }
 
-        return new LoginResponse(user, "로그인 성공");
+        // JWT 토큰 생성
+        String token = jwtUtil.generateToken(user.getUserId(), user.getName());
+
+        return new LoginResponse(user, "로그인 성공", token);
     }
 
     /**

@@ -91,6 +91,7 @@ Content-Type: application/json
   "locationLng": 126.9780
 }
 ```
+**응답:** JWT 토큰과 사용자 정보 반환 (토큰은 이후 API 호출 시 `Authorization: Bearer {token}` 헤더로 사용)
 **참고:** 로그인 시 위치 정보가 자동으로 업데이트됩니다.
 
 #### 5. 사용자 정보 업데이트

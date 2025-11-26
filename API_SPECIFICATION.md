@@ -240,15 +240,30 @@ Content-Type: application/json
   "locationLng": 126.9780,
   "hasBall": true,
   "createdAt": "2025-11-26T23:12:22.996392",
-  "message": "로그인 성공"
+  "message": "로그인 성공",
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsInVzZXJuYW1lIjoi6rmA7LKg7IiYIiwic3ViIjoi6rmA7LKg7IiYIiwiaWF0IjoxNzMyNjMxMjAwLCJleHAiOjE3MzI3MTc2MDB9.abcd1234efgh5678ijkl"
 }
 ```
+
+**Response Fields**
+
+| Field | Type | 설명 |
+|-------|------|------|
+| userId | Integer | 사용자 ID |
+| name | String | 사용자 이름 |
+| locationLat | Double | 위도 |
+| locationLng | Double | 경도 |
+| hasBall | Boolean | 공 소유 여부 |
+| createdAt | DateTime | 계정 생성 일시 |
+| message | String | 응답 메시지 |
+| token | String | JWT 인증 토큰 (24시간 유효) |
 
 **비즈니스 로직**
 1. 이름으로 사용자 조회
 2. 비밀번호 검증 (BCrypt)
 3. 위치 정보 업데이트
-4. 사용자 정보 반환
+4. JWT 토큰 생성 (userId, username 포함, 24시간 유효)
+5. 사용자 정보 및 토큰 반환
 
 **Error Response**
 - `401 Unauthorized`: 사용자 없음 또는 비밀번호 불일치

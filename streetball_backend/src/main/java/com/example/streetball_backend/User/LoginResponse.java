@@ -10,12 +10,13 @@ public class LoginResponse {
     private Boolean hasBall;
     private LocalDateTime createdAt;
     private String message;
+    private String token;
 
     // Constructors
     public LoginResponse() {
     }
 
-    public LoginResponse(User user, String message) {
+    public LoginResponse(User user, String message, String token) {
         this.userId = user.getUserId();
         this.name = user.getName();
         this.locationLat = user.getLocationLat();
@@ -23,6 +24,7 @@ public class LoginResponse {
         this.hasBall = user.getHasBall();
         this.createdAt = user.getCreatedAt();
         this.message = message;
+        this.token = token;
     }
 
     // Getters and Setters
@@ -80,6 +82,14 @@ public class LoginResponse {
 
     public void setMessage(String message) {
         this.message = message;
+    }
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
     }
 }
 
