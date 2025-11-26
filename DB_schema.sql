@@ -25,13 +25,11 @@ CREATE TABLE Game (
     game_id INT AUTO_INCREMENT PRIMARY KEY,
     court_id INT NOT NULL,
     max_players INT DEFAULT 10,
-    referee_id INT UNIQUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     current_players INT NOT NULL DEFAULT 0,
     status ENUM('모집 중', '모집 완료', '게임 종료') NOT NULL DEFAULT '모집 중',
     scheduled_time DATETIME NOT NULL,
     FOREIGN KEY (court_id) REFERENCES Court(court_id) ON DELETE CASCADE,
-    FOREIGN KEY (referee_id) REFERENCES User(user_id) ON DELETE SET NULL,
     CHECK (max_players > 0)
 );
 
@@ -40,7 +38,7 @@ CREATE TABLE Participation (
     participation_id INT AUTO_INCREMENT PRIMARY KEY,
     game_id INT NOT NULL,
     user_id INT NOT NULL,
-    role ENUM('player', 'spectator') NOT NULL,
+    role ENUM('player', 'referee', 'spectator') NOT NULL,
     joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE KEY uk_game_user (game_id, user_id),
     FOREIGN KEY (game_id) REFERENCES Game(game_id) ON DELETE CASCADE,

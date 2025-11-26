@@ -11,7 +11,6 @@ public class GameResponse {
     private GameStatus status;
     private LocalDateTime scheduledTime;
     private LocalDateTime createdAt;
-    private Integer refereeId;
 
     // Constructors
     public GameResponse() {
@@ -26,7 +25,6 @@ public class GameResponse {
         this.status = game.getStatus();
         this.scheduledTime = game.getScheduledTime();
         this.createdAt = game.getCreatedAt();
-        this.refereeId = game.getReferee() != null ? game.getReferee().getUserId() : null;
     }
 
     // Getters and Setters
@@ -92,14 +90,6 @@ public class GameResponse {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
-    }
-
-    public Integer getRefereeId() {
-        return refereeId;
-    }
-
-    public void setRefereeId(Integer refereeId) {
-        this.refereeId = refereeId;
     }
 }
 

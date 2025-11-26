@@ -45,8 +45,9 @@ http://localhost:8080/api
 - `게임_종료`: 게임 종료됨
 
 #### Enum: ParticipationRole
-- `player`: 플레이어
-- `spectator`: 관전자
+- `player`: 플레이어 (최대 인원 제한 있음)
+- `referee`: 심판 (게임당 최대 1명)
+- `spectator`: 관전자 (인원 제한 없음)
 
 ---
 
@@ -375,8 +376,7 @@ GET /api/games
     "currentPlayers": 1,
     "status": "모집_중",
     "scheduledTime": "2025-11-25T14:00:00",
-    "createdAt": "2025-11-24T23:15:00",
-    "refereeId": null
+    "createdAt": "2025-11-24T23:15:00"
   }
 ]
 ```
@@ -393,7 +393,6 @@ GET /api/games
 | status | GameStatus | 게임 상태 (모집_중/모집_완료/게임_종료) |
 | scheduledTime | DateTime | 게임 예정 시간 |
 | createdAt | DateTime | 생성 일시 |
-| refereeId | Integer | 심판 ID (nullable) |
 
 **Example**
 ```bash
@@ -427,8 +426,7 @@ GET /api/games/{gameId}
   "currentPlayers": 1,
   "status": "모집_중",
   "scheduledTime": "2025-11-25T14:00:00",
-  "createdAt": "2025-11-24T23:15:00",
-  "refereeId": null
+  "createdAt": "2025-11-24T23:15:00"
 }
 ```
 
@@ -485,8 +483,7 @@ Content-Type: application/json
   "currentPlayers": 1,
   "status": "모집_중",
   "scheduledTime": "2025-11-25T14:00:00",
-  "createdAt": "2025-11-24T23:15:00",
-  "refereeId": null
+  "createdAt": "2025-11-24T23:15:00"
 }
 ```
 
@@ -541,8 +538,7 @@ GET /api/games/nearby
     "currentPlayers": 5,
     "status": "모집_중",
     "scheduledTime": "2025-11-25T14:00:00",
-    "createdAt": "2025-11-24T23:15:00",
-    "refereeId": null
+    "createdAt": "2025-11-24T23:15:00"
   },
   {
     "gameId": 2,
@@ -552,8 +548,7 @@ GET /api/games/nearby
     "currentPlayers": 3,
     "status": "모집_중",
     "scheduledTime": "2025-11-25T16:00:00",
-    "createdAt": "2025-11-24T23:20:00",
-    "refereeId": null
+    "createdAt": "2025-11-24T23:20:00"
   }
 ]
 ```
@@ -605,8 +600,7 @@ PATCH /api/games/{gameId}/status
   "currentPlayers": 10,
   "status": "모집_완료",
   "scheduledTime": "2025-11-25T14:00:00",
-  "createdAt": "2025-11-24T23:15:00",
-  "refereeId": null
+  "createdAt": "2025-11-24T23:15:00"
 }
 ```
 
@@ -650,8 +644,7 @@ GET /api/games/status/{status}
     "currentPlayers": 5,
     "status": "모집_중",
     "scheduledTime": "2025-11-25T14:00:00",
-    "createdAt": "2025-11-24T23:15:00",
-    "refereeId": null
+    "createdAt": "2025-11-24T23:15:00"
   }
 ]
 ```
@@ -694,6 +687,102 @@ DELETE /api/games/{gameId}
 **Example**
 ```bash
 curl -X DELETE http://localhost:8080/api/games/1
+```
+
+---
+
+### 8. 게임 참여 ⭐ 핵심 기능
+
+사용자가 원하는 역할(player, referee, spectator)로 게임에 참여합니다.
+
+**Endpoint**
+```
+POST /api/games/{gameId}/join
+```
+
+**Path Parameters**
+
+| Parameter | Type | Required | 설명 |
+|-----------|------|----------|------|
+| gameId | Integer | Yes | 게임 ID |
+
+**Request Headers**
+```
+Content-Type: application/json
+```
+
+**Request Body**
+```json
+{
+  "userId": 2,
+  "role": "player"
+}
+```
+
+**Request Fields**
+
+| Field | Type | Required | 설명 |
+|-------|------|----------|------|
+| userId | Integer | Yes | 참여할 사용자 ID |
+| role | ParticipationRole | Yes | 참여 역할 (player/referee/spectator) |
+
+**Response** (200 OK)
+```json
+{
+  "gameId": 1,
+  "courtId": 1,
+  "courtName": "강남 농구장",
+  "maxPlayers": 10,
+  "currentPlayers": 2,
+  "status": "모집_중",
+  "scheduledTime": "2025-11-25T14:00:00",
+  "createdAt": "2025-11-24T23:15:00"
+}
+```
+
+**비즈니스 로직**
+1. 게임이 '모집_중' 상태인지 확인
+2. 이미 참여한 사용자인지 확인
+3. player로 참여하는 경우, 최대 인원 확인
+4. referee로 참여하는 경우, 이미 referee가 있는지 확인 (최대 1명)
+5. Participation 테이블에 참여 정보 저장
+6. player인 경우 currentPlayers 증가
+7. 최대 인원 도달 시 상태를 '모집_완료'로 변경
+8. spectator는 인원 제한 없이 참여 가능
+
+**Error Response**
+- `400 Bad Request`: 잘못된 요청
+  - 게임이 모집 중이 아님
+  - 이미 참여한 게임
+  - 최대 인원 초과 (player인 경우)
+  - 이미 심판이 등록되어 있음 (referee는 최대 1명)
+  - 사용자 또는 게임이 존재하지 않음
+
+**Example**
+```bash
+# player로 참여
+curl -X POST http://localhost:8080/api/games/1/join \
+  -H "Content-Type: application/json" \
+  -d '{
+    "userId": 2,
+    "role": "player"
+  }'
+
+# referee로 참여
+curl -X POST http://localhost:8080/api/games/1/join \
+  -H "Content-Type: application/json" \
+  -d '{
+    "userId": 3,
+    "role": "referee"
+  }'
+
+# spectator로 참여
+curl -X POST http://localhost:8080/api/games/1/join \
+  -H "Content-Type: application/json" \
+  -d '{
+    "userId": 4,
+    "role": "spectator"
+  }'
 ```
 
 ---

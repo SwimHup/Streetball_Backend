@@ -28,5 +28,12 @@ public interface ParticipationRepository extends JpaRepository<Participation, In
     
     // 중복 참여 체크
     boolean existsByGameGameIdAndUserUserId(Integer gameId, Integer userId);
+    
+    // Game과 User 엔티티로 중복 참여 체크
+    boolean existsByGameAndUser(com.example.streetball_backend.Game.Game game, 
+                                com.example.streetball_backend.User.User user);
+    
+    // 특정 게임에 특정 역할이 이미 존재하는지 확인
+    boolean existsByGameGameIdAndRole(Integer gameId, ParticipationRole role);
 }
 

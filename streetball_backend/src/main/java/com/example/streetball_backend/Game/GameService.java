@@ -176,5 +176,63 @@ public class GameService {
                 .map(GameResponse::new)
                 .collect(Collectors.toList());
     }
+
+    /**
+     * 게임 참여 (핵심 기능)
+     * 사용자가 원하는 역할(player, referee, spectator)로 게임에 참여
+     */
+    @Transactional
+    public GameResponse joinGame(Integer gameId, JoinGameRequest request) {
+        // Game 조회
+        Game game = gameRepository.findById(gameId)
+                .orElseThrow(() -> new RuntimeException("게임을 찾을 수 없습니다. ID: " + gameId));
+
+        // User 조회
+        User user = userRepository.findById(request.getUserId())
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다. ID: " + request.getUserId()));
+
+        // 게임 상태 확인 (모집 중인 게임만 참여 가능)
+        if (game.getStatus() != GameStatus.모집_중) {
+            throw new RuntimeException("모집 중인 게임만 참여할 수 있습니다.");
+        }
+
+        // 이미 참여했는지 확인
+        boolean alreadyParticipating = participationRepository.existsByGameAndUser(game, user);
+        if (alreadyParticipating) {
+            throw new RuntimeException("이미 참여한 게임입니다.");
+        }
+
+        // player로 참여하는 경우 최대 인원 확인
+        if (request.getRole() == ParticipationRole.player) {
+            if (game.getCurrentPlayers() >= game.getMaxPlayers()) {
+                throw new RuntimeException("최대 인원에 도달했습니다.");
+            }
+        }
+
+        // referee로 참여하는 경우 이미 referee가 있는지 확인 (최대 1명)
+        if (request.getRole() == ParticipationRole.referee) {
+            boolean hasReferee = participationRepository.existsByGameGameIdAndRole(gameId, ParticipationRole.referee);
+            if (hasReferee) {
+                throw new RuntimeException("이미 심판이 등록되어 있습니다. (최대 1명)");
+            }
+        }
+
+        // Participation 생성 및 저장
+        Participation participation = new Participation(game, user, request.getRole());
+        participationRepository.save(participation);
+
+        // player로 참여하는 경우 currentPlayers 증가
+        if (request.getRole() == ParticipationRole.player) {
+            game.setCurrentPlayers(game.getCurrentPlayers() + 1);
+            
+            // 최대 인원 도달 시 상태 변경
+            if (game.getCurrentPlayers() >= game.getMaxPlayers()) {
+                game.setStatus(GameStatus.모집_완료);
+            }
+        }
+
+        Game updatedGame = gameRepository.save(game);
+        return new GameResponse(updatedGame);
+    }
 }
 

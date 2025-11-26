@@ -49,8 +49,8 @@ streetball_backend/
 |--------|-----------|
 | **User** | `user_id` (PK), `name`, `location_lat`, `location_lng`, `has_ball` |
 | **Court** | `court_id` (PK), `court_name`, `location_lat`, `location_lng`, `is_indoor` |
-| **Game** | `game_id` (PK), `court_id` (FK), `referee_id` (FK), `max_players`, `current_players`, `status`, `scheduled_time` |
-| **Participation** | `participation_id` (PK), `game_id` (FK), `user_id` (FK), `role` (ENUM: player/spectator) |
+| **Game** | `game_id` (PK), `court_id` (FK), `max_players`, `current_players`, `status`, `scheduled_time` |
+| **Participation** | `participation_id` (PK), `game_id` (FK), `user_id` (FK), `role` (ENUM: player/referee(최대1명)/spectator) |
 | **Review** | `user_id` (PK, FK), `play_score`, `play_count`, `ref_score`, `ref_count` |
 
 ## API 엔드포인트

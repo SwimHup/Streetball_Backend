@@ -125,5 +125,24 @@ public class GameController {
         List<GameResponse> games = gameService.getGamesByStatus(status);
         return ResponseEntity.ok(games);
     }
+
+    @Operation(summary = "게임 참여 ⭐", description = "사용자가 원하는 역할(player, referee, spectator)로 게임에 참여합니다. 선착순으로 참여할 수 있습니다.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "참여 성공"),
+        @ApiResponse(responseCode = "400", description = "잘못된 요청 (최대 인원 초과, 이미 참여함 등)")
+    })
+    @PostMapping("/{gameId}/join")
+    public ResponseEntity<GameResponse> joinGame(
+            @Parameter(description = "게임 ID", required = true, example = "1")
+            @PathVariable Integer gameId,
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "게임 참여 정보", required = true)
+            @RequestBody JoinGameRequest request) {
+        try {
+            GameResponse updatedGame = gameService.joinGame(gameId, request);
+            return ResponseEntity.ok(updatedGame);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
+    }
 }
 

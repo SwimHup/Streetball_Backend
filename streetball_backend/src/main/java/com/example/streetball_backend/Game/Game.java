@@ -23,10 +23,6 @@ public class Game {
     @Column(name = "max_players", nullable = false)
     private Integer maxPlayers = 10;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "referee_id", unique = true)
-    private User referee;
-
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
@@ -76,14 +72,6 @@ public class Game {
 
     public void setMaxPlayers(Integer maxPlayers) {
         this.maxPlayers = maxPlayers;
-    }
-
-    public User getReferee() {
-        return referee;
-    }
-
-    public void setReferee(User referee) {
-        this.referee = referee;
     }
 
     public LocalDateTime getCreatedAt() {
