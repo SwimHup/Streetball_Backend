@@ -814,6 +814,178 @@ curl -X POST http://localhost:8080/api/games/1/join \
 
 ---
 
+### 9. 심판 있는 게임 조회 ⭐ 핵심 기능
+
+심판이 등록된 모집 중인 게임 목록을 조회합니다.
+
+**Endpoint**
+```
+GET /api/games/with-referee
+```
+
+**Response** (200 OK)
+```json
+[
+  {
+    "gameId": 1,
+    "courtId": 1,
+    "courtName": "강남 농구장",
+    "maxPlayers": 10,
+    "currentPlayers": 5,
+    "status": "모집_중",
+    "scheduledTime": "2025-11-25T14:00:00",
+    "createdAt": "2025-11-24T23:15:00"
+  }
+]
+```
+
+**Example**
+```bash
+curl http://localhost:8080/api/games/with-referee
+```
+
+---
+
+### 10. 심판 없는 게임 조회 ⭐ 핵심 기능
+
+심판이 등록되지 않은 모집 중인 게임 목록을 조회합니다.
+
+**Endpoint**
+```
+GET /api/games/without-referee
+```
+
+**Response** (200 OK)
+```json
+[
+  {
+    "gameId": 2,
+    "courtId": 3,
+    "courtName": "홍대 스트리트 코트",
+    "maxPlayers": 8,
+    "currentPlayers": 3,
+    "status": "모집_중",
+    "scheduledTime": "2025-11-25T16:00:00",
+    "createdAt": "2025-11-24T23:20:00"
+  }
+]
+```
+
+**Example**
+```bash
+curl http://localhost:8080/api/games/without-referee
+```
+
+---
+
+## User API - 참여 게임 관리
+
+### 7. 진행 중인 참여 게임 조회 ⭐ 핵심 기능
+
+사용자가 참여한 진행 중인 게임 목록을 조회합니다. (모집_중, 모집_완료 상태)
+
+**Endpoint**
+```
+GET /api/users/{userId}/games/ongoing
+```
+
+**Path Parameters**
+
+| Parameter | Type | Required | 설명 |
+|-----------|------|----------|------|
+| userId | Integer | Yes | 사용자 ID |
+
+**Response** (200 OK)
+```json
+[
+  {
+    "gameId": 1,
+    "courtId": 1,
+    "courtName": "강남 농구장",
+    "maxPlayers": 10,
+    "currentPlayers": 5,
+    "status": "모집_중",
+    "scheduledTime": "2025-11-25T14:00:00",
+    "createdAt": "2025-11-24T23:15:00"
+  }
+]
+```
+
+**Example**
+```bash
+curl http://localhost:8080/api/users/1/games/ongoing
+```
+
+---
+
+### 8. 과거 참여 게임 조회
+
+사용자가 참여했던 과거 게임 목록을 조회합니다. (게임_종료 상태)
+
+**Endpoint**
+```
+GET /api/users/{userId}/games/past
+```
+
+**Path Parameters**
+
+| Parameter | Type | Required | 설명 |
+|-----------|------|----------|------|
+| userId | Integer | Yes | 사용자 ID |
+
+**Response** (200 OK)
+```json
+[
+  {
+    "gameId": 10,
+    "courtId": 2,
+    "courtName": "잠실 야외 코트",
+    "maxPlayers": 10,
+    "currentPlayers": 10,
+    "status": "게임_종료",
+    "scheduledTime": "2025-11-20T14:00:00",
+    "createdAt": "2025-11-19T23:15:00"
+  }
+]
+```
+
+**Example**
+```bash
+curl http://localhost:8080/api/users/1/games/past
+```
+
+---
+
+### 9. 게임 참여 취소 ⭐ 핵심 기능
+
+사용자가 참여한 게임을 취소합니다. 진행 중인 게임만 취소 가능합니다.
+
+**Endpoint**
+```
+DELETE /api/users/{userId}/games/{gameId}
+```
+
+**Path Parameters**
+
+| Parameter | Type | Required | 설명 |
+|-----------|------|----------|------|
+| userId | Integer | Yes | 사용자 ID |
+| gameId | Integer | Yes | 게임 ID |
+
+**Response** (204 No Content)
+- 응답 본문 없음
+
+**Error Response**
+- `400 Bad Request`: 종료된 게임은 취소 불가
+- `404 Not Found`: 참여 내역을 찾을 수 없음
+
+**Example**
+```bash
+curl -X DELETE http://localhost:8080/api/users/1/games/1
+```
+
+---
+
 ## 에러 코드
 
 ### 공통 에러 응답 형식

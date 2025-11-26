@@ -1,5 +1,9 @@
 package com.example.streetball_backend.User;
 
+import com.example.streetball_backend.Game.GameResponse;
+import com.example.streetball_backend.Participation.Participation;
+import com.example.streetball_backend.Participation.ParticipationRepository;
+import com.example.streetball_backend.Participation.ParticipationRole;
 import com.example.streetball_backend.config.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -20,6 +24,9 @@ public class UserService {
 
     @Autowired
     private JwtUtil jwtUtil;
+
+    @Autowired
+    private ParticipationRepository participationRepository;
 
     /**
      * 모든 사용자 조회
@@ -124,6 +131,51 @@ public class UserService {
             throw new RuntimeException("사용자를 찾을 수 없습니다. ID: " + userId);
         }
         userRepository.deleteById(userId);
+    }
+
+    /**
+     * 사용자가 참여한 진행 중인 게임 조회
+     */
+    public List<GameResponse> getOngoingGames(Integer userId) {
+        if (!userRepository.existsById(userId)) {
+            throw new RuntimeException("사용자를 찾을 수 없습니다. ID: " + userId);
+        }
+        return participationRepository.findOngoingGamesByUserId(userId).stream()
+                .map(p -> new GameResponse(p.getGame()))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 사용자가 참여한 과거 게임 조회
+     */
+    public List<GameResponse> getPastGames(Integer userId) {
+        if (!userRepository.existsById(userId)) {
+            throw new RuntimeException("사용자를 찾을 수 없습니다. ID: " + userId);
+        }
+        return participationRepository.findPastGamesByUserId(userId).stream()
+                .map(p -> new GameResponse(p.getGame()))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 게임 참여 취소 (진행 중인 게임만)
+     */
+    @Transactional
+    public void cancelGameParticipation(Integer userId, Integer gameId) {
+        if (!userRepository.existsById(userId)) {
+            throw new RuntimeException("사용자를 찾을 수 없습니다. ID: " + userId);
+        }
+
+        Participation participation = participationRepository.findByGameIdAndUserId(gameId, userId)
+                .orElseThrow(() -> new RuntimeException("참여 내역을 찾을 수 없습니다."));
+
+        // 게임이 종료된 경우 취소 불가
+        if (participation.getGame().getStatus() == com.example.streetball_backend.Game.GameStatus.게임_종료) {
+            throw new RuntimeException("종료된 게임은 취소할 수 없습니다.");
+        }
+
+        // player인 경우 current_players 감소는 트리거가 처리
+        participationRepository.delete(participation);
     }
 }
 

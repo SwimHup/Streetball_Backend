@@ -35,5 +35,15 @@ public interface ParticipationRepository extends JpaRepository<Participation, In
     
     // 특정 게임에 특정 역할이 이미 존재하는지 확인
     boolean existsByGameGameIdAndRole(Integer gameId, ParticipationRole role);
+    
+    // 사용자가 참여한 진행 중인 게임 조회 (모집_중, 모집_완료)
+    @Query("SELECT p FROM Participation p WHERE p.user.userId = :userId " +
+           "AND p.game.status IN (com.example.streetball_backend.Game.GameStatus.모집_중, com.example.streetball_backend.Game.GameStatus.모집_완료)")
+    List<Participation> findOngoingGamesByUserId(@Param("userId") Integer userId);
+    
+    // 사용자가 참여한 과거 게임 조회 (게임_종료)
+    @Query("SELECT p FROM Participation p WHERE p.user.userId = :userId " +
+           "AND p.game.status = com.example.streetball_backend.Game.GameStatus.게임_종료")
+    List<Participation> findPastGamesByUserId(@Param("userId") Integer userId);
 }
 

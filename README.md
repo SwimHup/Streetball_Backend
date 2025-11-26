@@ -164,6 +164,50 @@ GET /api/games/status/{status}
 DELETE /api/games/{gameId}
 ```
 
+#### 8. 게임 참여 (핵심 기능)
+```
+POST /api/games/{gameId}/join
+Content-Type: application/json
+
+{
+  "userId": 2,
+  "role": "player"  // player, referee, spectator 중 선택
+}
+```
+**참고:** referee는 게임당 최대 1명만 참여 가능합니다.
+
+#### 9. 심판 있는 게임 조회 (핵심 기능)
+```
+GET /api/games/with-referee
+```
+**기능:** 심판이 등록된 모집 중인 게임 목록 조회
+
+#### 10. 심판 없는 게임 조회 (핵심 기능)
+```
+GET /api/games/without-referee
+```
+**기능:** 심판이 없는 모집 중인 게임 목록 조회
+
+### User API - 참여 게임 관리
+
+#### 7. 진행 중인 참여 게임 조회 (핵심 기능)
+```
+GET /api/users/{userId}/games/ongoing
+```
+**기능:** 사용자가 참여한 진행 중인 게임 (모집_중, 모집_완료) 조회
+
+#### 8. 과거 참여 게임 조회
+```
+GET /api/users/{userId}/games/past
+```
+**기능:** 사용자가 참여했던 과거 게임 (게임_종료) 조회
+
+#### 9. 게임 참여 취소 (핵심 기능)
+```
+DELETE /api/users/{userId}/games/{gameId}
+```
+**기능:** 진행 중인 게임 참여 취소 (종료된 게임은 취소 불가)
+
 ## 핵심 비즈니스 로직
 
 ### 1. 게임 생성 (GameService.createGame)

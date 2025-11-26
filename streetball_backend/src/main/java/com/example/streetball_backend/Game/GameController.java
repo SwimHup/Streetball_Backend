@@ -144,5 +144,21 @@ public class GameController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
     }
+
+    @Operation(summary = "심판 있는 게임 조회 ⭐", description = "심판이 등록된 모집 중인 게임 목록을 조회합니다.")
+    @ApiResponse(responseCode = "200", description = "조회 성공")
+    @GetMapping("/with-referee")
+    public ResponseEntity<List<GameResponse>> getGamesWithReferee() {
+        List<GameResponse> games = gameService.getGamesWithReferee();
+        return ResponseEntity.ok(games);
+    }
+
+    @Operation(summary = "심판 없는 게임 조회 ⭐", description = "심판이 등록되지 않은 모집 중인 게임 목록을 조회합니다.")
+    @ApiResponse(responseCode = "200", description = "조회 성공")
+    @GetMapping("/without-referee")
+    public ResponseEntity<List<GameResponse>> getGamesWithoutReferee() {
+        List<GameResponse> games = gameService.getGamesWithoutReferee();
+        return ResponseEntity.ok(games);
+    }
 }
 

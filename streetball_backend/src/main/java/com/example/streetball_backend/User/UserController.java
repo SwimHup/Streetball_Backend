@@ -1,5 +1,6 @@
 package com.example.streetball_backend.User;
 
+import com.example.streetball_backend.Game.GameResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -112,6 +113,54 @@ public class UserController {
             return ResponseEntity.noContent().build();
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+    }
+
+    @Operation(summary = "진행 중인 참여 게임 조회 ⭐", description = "사용자가 참여한 진행 중인 게임 목록을 조회합니다. (모집_중, 모집_완료)")
+    @ApiResponse(responseCode = "200", description = "조회 성공")
+    @GetMapping("/{userId}/games/ongoing")
+    public ResponseEntity<List<GameResponse>> getOngoingGames(
+            @Parameter(description = "사용자 ID", required = true, example = "1")
+            @PathVariable Integer userId) {
+        try {
+            List<GameResponse> games = userService.getOngoingGames(userId);
+            return ResponseEntity.ok(games);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+    }
+
+    @Operation(summary = "과거 참여 게임 조회", description = "사용자가 참여했던 과거 게임 목록을 조회합니다. (게임_종료)")
+    @ApiResponse(responseCode = "200", description = "조회 성공")
+    @GetMapping("/{userId}/games/past")
+    public ResponseEntity<List<GameResponse>> getPastGames(
+            @Parameter(description = "사용자 ID", required = true, example = "1")
+            @PathVariable Integer userId) {
+        try {
+            List<GameResponse> games = userService.getPastGames(userId);
+            return ResponseEntity.ok(games);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+    }
+
+    @Operation(summary = "게임 참여 취소 ⭐", description = "사용자가 참여한 게임을 취소합니다. 진행 중인 게임만 취소 가능합니다.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "204", description = "취소 성공"),
+        @ApiResponse(responseCode = "400", description = "잘못된 요청 (종료된 게임 등)"),
+        @ApiResponse(responseCode = "404", description = "참여 내역을 찾을 수 없음")
+    })
+    @DeleteMapping("/{userId}/games/{gameId}")
+    public ResponseEntity<Void> cancelGameParticipation(
+            @Parameter(description = "사용자 ID", required = true, example = "1")
+            @PathVariable Integer userId,
+            @Parameter(description = "게임 ID", required = true, example = "1")
+            @PathVariable Integer gameId) {
+        try {
+            userService.cancelGameParticipation(userId, gameId);
+            return ResponseEntity.noContent().build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
     }
 }

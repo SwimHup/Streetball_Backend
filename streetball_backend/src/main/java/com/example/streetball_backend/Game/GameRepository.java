@@ -25,5 +25,17 @@ public interface GameRepository extends JpaRepository<Game, Integer> {
     
     // 예정된 시간 이후의 게임 조회
     List<Game> findByScheduledTimeAfter(LocalDateTime dateTime);
+    
+    // 심판이 있는 게임 조회 (모집_중 상태만)
+    @Query("SELECT DISTINCT g FROM Game g JOIN Participation p ON g.gameId = p.game.gameId " +
+           "WHERE p.role = com.example.streetball_backend.Participation.ParticipationRole.referee " +
+           "AND g.status = com.example.streetball_backend.Game.GameStatus.모집_중")
+    List<Game> findGamesWithReferee();
+    
+    // 심판이 없는 게임 조회 (모집_중 상태만)
+    @Query("SELECT g FROM Game g WHERE g.status = com.example.streetball_backend.Game.GameStatus.모집_중 " +
+           "AND NOT EXISTS (SELECT 1 FROM Participation p WHERE p.game.gameId = g.gameId " +
+           "AND p.role = com.example.streetball_backend.Participation.ParticipationRole.referee)")
+    List<Game> findGamesWithoutReferee();
 }
 

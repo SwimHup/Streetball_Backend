@@ -178,6 +178,24 @@ public class GameService {
     }
 
     /**
+     * 심판이 있는 게임 조회
+     */
+    public List<GameResponse> getGamesWithReferee() {
+        return gameRepository.findGamesWithReferee().stream()
+                .map(GameResponse::new)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 심판이 없는 게임 조회
+     */
+    public List<GameResponse> getGamesWithoutReferee() {
+        return gameRepository.findGamesWithoutReferee().stream()
+                .map(GameResponse::new)
+                .collect(Collectors.toList());
+    }
+
+    /**
      * 게임 참여 (핵심 기능)
      * 사용자가 원하는 역할(player, referee, spectator)로 게임에 참여
      */
