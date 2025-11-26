@@ -3,10 +3,12 @@ USE `street-ball`;
 
 CREATE TABLE User (
   `user_id` int NOT NULL AUTO_INCREMENT,
-  `name` varchar(50) NOT NULL,
+  `name` varchar(100) NOT NULL UNIQUE,
+  `password` varchar(255) NOT NULL,
   `location_lat` decimal(10,8) DEFAULT NULL,
   `location_lng` decimal(11,8) DEFAULT NULL,
   `has_ball` tinyint(1) DEFAULT '0',
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
 

@@ -1,46 +1,28 @@
 package com.example.streetball_backend.User;
 
-import jakarta.persistence.*;
-import org.hibernate.annotations.CreationTimestamp;
-
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "User")
-public class User {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "user_id")
+public class LoginResponse {
     private Integer userId;
-
-    @Column(name = "name", nullable = false, unique = true, length = 100)
     private String name;
-
-    @Column(name = "password", nullable = false)
-    private String password;
-
-    @Column(name = "location_lat")
     private Double locationLat;
-
-    @Column(name = "location_lng")
     private Double locationLng;
-
-    @Column(name = "has_ball", nullable = false, columnDefinition = "BOOLEAN DEFAULT false")
-    private Boolean hasBall = false;
-
-    @CreationTimestamp
-    @Column(name = "created_at", updatable = false)
+    private Boolean hasBall;
     private LocalDateTime createdAt;
+    private String message;
 
     // Constructors
-    public User() {
+    public LoginResponse() {
     }
 
-    public User(String name, String password, Boolean hasBall) {
-        this.name = name;
-        this.password = password;
-        this.hasBall = hasBall;
+    public LoginResponse(User user, String message) {
+        this.userId = user.getUserId();
+        this.name = user.getName();
+        this.locationLat = user.getLocationLat();
+        this.locationLng = user.getLocationLng();
+        this.hasBall = user.getHasBall();
+        this.createdAt = user.getCreatedAt();
+        this.message = message;
     }
 
     // Getters and Setters
@@ -58,14 +40,6 @@ public class User {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
     }
 
     public Double getLocationLat() {
@@ -99,4 +73,13 @@ public class User {
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
 }
+

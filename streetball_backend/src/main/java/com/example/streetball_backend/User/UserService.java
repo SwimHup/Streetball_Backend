@@ -1,6 +1,7 @@
 package com.example.streetball_backend.User;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,6 +13,9 @@ public class UserService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     /**
      * 모든 사용자 조회
@@ -32,18 +36,42 @@ public class UserService {
     }
 
     /**
-     * 새 사용자 생성
+     * 회원가입 (핵심 기능)
      */
     @Transactional
-    public UserResponse createUser(UserCreateRequest request) {
+    public UserResponse signup(SignupRequest request) {
+        // 이름 중복 확인
+        if (userRepository.findByName(request.getName()).isPresent()) {
+            throw new RuntimeException("이미 존재하는 이름입니다.");
+        }
+
+        // 비밀번호 암호화
+        String encodedPassword = passwordEncoder.encode(request.getPassword());
+
+        // 사용자 생성
         User user = new User(
                 request.getName(),
-                request.getLocationLat(),
-                request.getLocationLng(),
+                encodedPassword,
                 request.getHasBall() != null ? request.getHasBall() : false
         );
         User savedUser = userRepository.save(user);
         return new UserResponse(savedUser);
+    }
+
+    /**
+     * 로그인 (핵심 기능)
+     */
+    public LoginResponse login(LoginRequest request) {
+        // 사용자 조회
+        User user = userRepository.findByName(request.getName())
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+
+        // 비밀번호 확인
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new RuntimeException("비밀번호가 일치하지 않습니다.");
+        }
+
+        return new LoginResponse(user, "로그인 성공");
     }
 
     /**

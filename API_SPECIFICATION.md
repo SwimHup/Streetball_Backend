@@ -134,13 +134,13 @@ curl http://localhost:8080/api/users/1
 
 ---
 
-### 3. 사용자 생성
+### 3. 회원가입 ⭐ 핵심 기능
 
-새로운 사용자를 생성합니다.
+새로운 사용자를 시스템에 등록합니다.
 
 **Endpoint**
 ```
-POST /api/users
+POST /api/users/signup
 ```
 
 **Request Headers**
@@ -152,8 +152,7 @@ Content-Type: application/json
 ```json
 {
   "name": "김철수",
-  "locationLat": 37.5665,
-  "locationLng": 126.9780,
+  "password": "password123",
   "hasBall": true
 }
 ```
@@ -162,9 +161,8 @@ Content-Type: application/json
 
 | Field | Type | Required | 설명 |
 |-------|------|----------|------|
-| name | String | Yes | 사용자 이름 (최대 100자) |
-| locationLat | Double | No | 위도 |
-| locationLng | Double | No | 경도 |
+| name | String | Yes | 사용자 이름 (최대 100자, 중복 불가) |
+| password | String | Yes | 비밀번호 |
 | hasBall | Boolean | No | 농구공 소유 여부 (기본값: false) |
 
 **Response** (201 Created)
@@ -172,30 +170,100 @@ Content-Type: application/json
 {
   "userId": 1,
   "name": "김철수",
-  "locationLat": 37.5665,
-  "locationLng": 126.9780,
+  "locationLat": null,
+  "locationLng": null,
   "hasBall": true,
-  "createdAt": "2025-11-24T23:12:22.996392"
+  "createdAt": "2025-11-26T23:12:22.996392"
 }
 ```
 
+**비즈니스 로직**
+1. 이름 중복 확인
+2. 비밀번호 암호화 (BCrypt)
+3. 사용자 생성 (위치는 null로 시작, 로그인 후 위치 업데이트)
+
+**Error Response**
+- `400 Bad Request`: 이름 중복 또는 잘못된 요청
+
 **Example**
 ```bash
-curl -X POST http://localhost:8080/api/users \
+curl -X POST http://localhost:8080/api/users/signup \
   -H "Content-Type: application/json" \
   -d '{
     "name": "김철수",
-    "locationLat": 37.5665,
-    "locationLng": 126.9780,
+    "password": "password123",
     "hasBall": true
   }'
 ```
 
 ---
 
-### 4. 사용자 위치 업데이트 ⭐ 핵심 기능
+### 4. 로그인 ⭐ 핵심 기능
 
-사용자의 현재 위치를 업데이트합니다.
+이름과 비밀번호로 로그인합니다.
+
+**Endpoint**
+```
+POST /api/users/login
+```
+
+**Request Headers**
+```
+Content-Type: application/json
+```
+
+**Request Body**
+```json
+{
+  "name": "김철수",
+  "password": "password123"
+}
+```
+
+**Request Fields**
+
+| Field | Type | Required | 설명 |
+|-------|------|----------|------|
+| name | String | Yes | 사용자 이름 |
+| password | String | Yes | 비밀번호 |
+
+**Response** (200 OK)
+```json
+{
+  "userId": 1,
+  "name": "김철수",
+  "locationLat": 37.5665,
+  "locationLng": 126.9780,
+  "hasBall": true,
+  "createdAt": "2025-11-26T23:12:22.996392",
+  "message": "로그인 성공"
+}
+```
+
+**비즈니스 로직**
+1. 이름으로 사용자 조회
+2. 비밀번호 검증 (BCrypt)
+3. 사용자 정보 반환
+4. 로그인 후 별도로 위치 업데이트 API 호출 필요
+
+**Error Response**
+- `401 Unauthorized`: 사용자 없음 또는 비밀번호 불일치
+
+**Example**
+```bash
+curl -X POST http://localhost:8080/api/users/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "김철수",
+    "password": "password123"
+  }'
+```
+
+---
+
+### 6. 사용자 위치 업데이트 ⭐ 핵심 기능
+
+사용자의 현재 위치를 업데이트합니다. 로그인 후 호출하여 현재 위치를 저장합니다.
 
 **Endpoint**
 ```
@@ -255,7 +323,7 @@ curl -X PATCH http://localhost:8080/api/users/1/location \
 
 ---
 
-### 5. 사용자 정보 업데이트
+### 7. 사용자 정보 업데이트
 
 사용자의 전체 정보를 업데이트합니다.
 
@@ -323,7 +391,7 @@ curl -X PUT http://localhost:8080/api/users/1 \
 
 ---
 
-### 6. 사용자 삭제
+### 8. 사용자 삭제
 
 사용자를 삭제합니다.
 

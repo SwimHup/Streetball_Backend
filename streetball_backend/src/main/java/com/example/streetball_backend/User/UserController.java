@@ -45,20 +45,37 @@ public class UserController {
         }
     }
 
-    @Operation(summary = "새 사용자 생성", description = "새로운 사용자를 시스템에 등록합니다.")
+    @Operation(summary = "회원가입 ⭐", description = "새로운 사용자를 시스템에 등록합니다. 이름, 비밀번호, 공 소유 여부를 입력받습니다.")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "201", description = "생성 성공"),
-        @ApiResponse(responseCode = "400", description = "잘못된 요청")
+        @ApiResponse(responseCode = "201", description = "회원가입 성공"),
+        @ApiResponse(responseCode = "400", description = "잘못된 요청 (이름 중복 등)")
     })
-    @PostMapping
-    public ResponseEntity<UserResponse> createUser(
-            @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "사용자 정보", required = true)
-            @RequestBody UserCreateRequest request) {
+    @PostMapping("/signup")
+    public ResponseEntity<UserResponse> signup(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "회원가입 정보", required = true)
+            @RequestBody SignupRequest request) {
         try {
-            UserResponse createdUser = userService.createUser(request);
-            return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
-        } catch (Exception e) {
+            UserResponse newUser = userService.signup(request);
+            return ResponseEntity.status(HttpStatus.CREATED).body(newUser);
+        } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
+    }
+
+    @Operation(summary = "로그인 ⭐", description = "이름과 비밀번호로 로그인합니다. 로그인 후 위치 업데이트 API를 별도로 호출하여 위치를 저장하세요.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "로그인 성공"),
+        @ApiResponse(responseCode = "401", description = "인증 실패 (사용자 없음 또는 비밀번호 불일치)")
+    })
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponse> login(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "로그인 정보", required = true)
+            @RequestBody LoginRequest request) {
+        try {
+            LoginResponse response = userService.login(request);
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
         }
     }
 

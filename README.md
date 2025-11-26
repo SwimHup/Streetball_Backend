@@ -47,7 +47,7 @@ streetball_backend/
 
 | 테이블 | 주요 필드 |
 |--------|-----------|
-| **User** | `user_id` (PK), `name`, `location_lat`, `location_lng`, `has_ball` |
+| **User** | `user_id` (PK), `name` (unique), `password`, `location_lat`, `location_lng`, `has_ball`, `created_at` |
 | **Court** | `court_id` (PK), `court_name`, `location_lat`, `location_lng`, `is_indoor` |
 | **Game** | `game_id` (PK), `court_id` (FK), `max_players`, `current_players`, `status`, `scheduled_time` |
 | **Participation** | `participation_id` (PK), `game_id` (FK), `user_id` (FK), `role` (ENUM: player/referee(최대1명)/spectator) |
@@ -67,20 +67,31 @@ GET /api/users
 GET /api/users/{userId}
 ```
 
-#### 3. 새 사용자 생성
+#### 3. 회원가입 (핵심 기능)
 ```
-POST /api/users
+POST /api/users/signup
 Content-Type: application/json
 
 {
   "name": "홍길동",
-  "locationLat": 37.5665,
-  "locationLng": 126.9780,
+  "password": "password123",
   "hasBall": true
 }
 ```
 
-#### 4. 사용자 위치 업데이트 (핵심 기능)
+#### 4. 로그인 (핵심 기능)
+```
+POST /api/users/login
+Content-Type: application/json
+
+{
+  "name": "홍길동",
+  "password": "password123"
+}
+```
+**참고:** 로그인 후 별도로 위치 업데이트 API를 호출하여 현재 위치를 저장합니다.
+
+#### 5. 사용자 위치 업데이트 (핵심 기능)
 ```
 PATCH /api/users/{userId}/location
 Content-Type: application/json
@@ -91,7 +102,7 @@ Content-Type: application/json
 }
 ```
 
-#### 5. 사용자 정보 업데이트
+#### 6. 사용자 정보 업데이트
 ```
 PUT /api/users/{userId}
 Content-Type: application/json
@@ -104,7 +115,7 @@ Content-Type: application/json
 }
 ```
 
-#### 6. 사용자 삭제
+#### 7. 사용자 삭제
 ```
 DELETE /api/users/{userId}
 ```
