@@ -86,23 +86,14 @@ Content-Type: application/json
 
 {
   "name": "홍길동",
-  "password": "password123"
-}
-```
-**참고:** 로그인 후 별도로 위치 업데이트 API를 호출하여 현재 위치를 저장합니다.
-
-#### 5. 사용자 위치 업데이트 (핵심 기능)
-```
-PATCH /api/users/{userId}/location
-Content-Type: application/json
-
-{
+  "password": "password123",
   "locationLat": 37.5665,
   "locationLng": 126.9780
 }
 ```
+**참고:** 로그인 시 위치 정보가 자동으로 업데이트됩니다.
 
-#### 6. 사용자 정보 업데이트
+#### 5. 사용자 정보 업데이트
 ```
 PUT /api/users/{userId}
 Content-Type: application/json
@@ -115,7 +106,7 @@ Content-Type: application/json
 }
 ```
 
-#### 7. 사용자 삭제
+#### 6. 사용자 삭제
 ```
 DELETE /api/users/{userId}
 ```

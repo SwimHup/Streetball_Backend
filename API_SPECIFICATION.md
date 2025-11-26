@@ -200,7 +200,7 @@ curl -X POST http://localhost:8080/api/users/signup \
 
 ### 4. 로그인 ⭐ 핵심 기능
 
-이름과 비밀번호로 로그인합니다.
+이름, 비밀번호, 현재 위치로 로그인합니다. 로그인 시 위치 정보가 자동으로 업데이트됩니다.
 
 **Endpoint**
 ```
@@ -216,7 +216,9 @@ Content-Type: application/json
 ```json
 {
   "name": "김철수",
-  "password": "password123"
+  "password": "password123",
+  "locationLat": 37.5665,
+  "locationLng": 126.9780
 }
 ```
 
@@ -226,6 +228,8 @@ Content-Type: application/json
 |-------|------|----------|------|
 | name | String | Yes | 사용자 이름 |
 | password | String | Yes | 비밀번호 |
+| locationLat | Double | Yes | 현재 위도 |
+| locationLng | Double | Yes | 현재 경도 |
 
 **Response** (200 OK)
 ```json
@@ -243,8 +247,8 @@ Content-Type: application/json
 **비즈니스 로직**
 1. 이름으로 사용자 조회
 2. 비밀번호 검증 (BCrypt)
-3. 사용자 정보 반환
-4. 로그인 후 별도로 위치 업데이트 API 호출 필요
+3. 위치 정보 업데이트
+4. 사용자 정보 반환
 
 **Error Response**
 - `401 Unauthorized`: 사용자 없음 또는 비밀번호 불일치
@@ -255,75 +259,15 @@ curl -X POST http://localhost:8080/api/users/login \
   -H "Content-Type: application/json" \
   -d '{
     "name": "김철수",
-    "password": "password123"
+    "password": "password123",
+    "locationLat": 37.5665,
+    "locationLng": 126.9780
   }'
 ```
 
 ---
 
-### 6. 사용자 위치 업데이트 ⭐ 핵심 기능
-
-사용자의 현재 위치를 업데이트합니다. 로그인 후 호출하여 현재 위치를 저장합니다.
-
-**Endpoint**
-```
-PATCH /api/users/{userId}/location
-```
-
-**Path Parameters**
-
-| Parameter | Type | Required | 설명 |
-|-----------|------|----------|------|
-| userId | Integer | Yes | 사용자 ID |
-
-**Request Headers**
-```
-Content-Type: application/json
-```
-
-**Request Body**
-```json
-{
-  "locationLat": 37.5670,
-  "locationLng": 126.9790
-}
-```
-
-**Request Fields**
-
-| Field | Type | Required | 설명 |
-|-------|------|----------|------|
-| locationLat | Double | Yes | 새 위도 |
-| locationLng | Double | Yes | 새 경도 |
-
-**Response** (200 OK)
-```json
-{
-  "userId": 1,
-  "name": "김철수",
-  "locationLat": 37.5670,
-  "locationLng": 126.9790,
-  "hasBall": true,
-  "createdAt": "2025-11-24T23:12:22.996392"
-}
-```
-
-**Error Response**
-- `404 Not Found`: 사용자가 존재하지 않음
-
-**Example**
-```bash
-curl -X PATCH http://localhost:8080/api/users/1/location \
-  -H "Content-Type: application/json" \
-  -d '{
-    "locationLat": 37.5670,
-    "locationLng": 126.9790
-  }'
-```
-
----
-
-### 7. 사용자 정보 업데이트
+### 5. 사용자 정보 업데이트
 
 사용자의 전체 정보를 업데이트합니다.
 
@@ -391,7 +335,7 @@ curl -X PUT http://localhost:8080/api/users/1 \
 
 ---
 
-### 8. 사용자 삭제
+### 6. 사용자 삭제
 
 사용자를 삭제합니다.
 

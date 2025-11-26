@@ -60,7 +60,9 @@ public class UserService {
 
     /**
      * 로그인 (핵심 기능)
+     * 로그인 시 위치 정보도 함께 업데이트
      */
+    @Transactional
     public LoginResponse login(LoginRequest request) {
         // 사용자 조회
         User user = userRepository.findByName(request.getName())
@@ -71,22 +73,14 @@ public class UserService {
             throw new RuntimeException("비밀번호가 일치하지 않습니다.");
         }
 
-        return new LoginResponse(user, "로그인 성공");
-    }
+        // 위치 정보 업데이트
+        if (request.getLocationLat() != null && request.getLocationLng() != null) {
+            user.setLocationLat(request.getLocationLat());
+            user.setLocationLng(request.getLocationLng());
+            userRepository.save(user);
+        }
 
-    /**
-     * 사용자 위치 업데이트 (핵심 기능)
-     */
-    @Transactional
-    public UserResponse updateUserLocation(Integer userId, UserLocationRequest request) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다. ID: " + userId));
-        
-        user.setLocationLat(request.getLocationLat());
-        user.setLocationLng(request.getLocationLng());
-        
-        User updatedUser = userRepository.save(user);
-        return new UserResponse(updatedUser);
+        return new LoginResponse(user, "로그인 성공");
     }
 
     /**

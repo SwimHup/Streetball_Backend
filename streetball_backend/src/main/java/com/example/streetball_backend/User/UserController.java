@@ -62,39 +62,20 @@ public class UserController {
         }
     }
 
-    @Operation(summary = "로그인 ⭐", description = "이름과 비밀번호로 로그인합니다. 로그인 후 위치 업데이트 API를 별도로 호출하여 위치를 저장하세요.")
+    @Operation(summary = "로그인 ⭐", description = "이름, 비밀번호, 현재 위치로 로그인합니다. 로그인 시 위치 정보가 자동으로 업데이트됩니다.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "로그인 성공"),
         @ApiResponse(responseCode = "401", description = "인증 실패 (사용자 없음 또는 비밀번호 불일치)")
     })
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(
-            @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "로그인 정보", required = true)
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "로그인 정보 (위치 포함)", required = true)
             @RequestBody LoginRequest request) {
         try {
             LoginResponse response = userService.login(request);
             return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
-        }
-    }
-
-    @Operation(summary = "사용자 위치 업데이트 ⭐", description = "사용자의 현재 위치(위도, 경도)를 업데이트합니다. 근처 게임 검색의 기준이 됩니다.")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "업데이트 성공"),
-        @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음")
-    })
-    @PatchMapping("/{userId}/location")
-    public ResponseEntity<UserResponse> updateUserLocation(
-            @Parameter(description = "사용자 ID", required = true, example = "1")
-            @PathVariable Integer userId,
-            @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "새 위치 정보", required = true)
-            @RequestBody UserLocationRequest request) {
-        try {
-            UserResponse updatedUser = userService.updateUserLocation(userId, request);
-            return ResponseEntity.ok(updatedUser);
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
     }
 
