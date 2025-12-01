@@ -30,19 +30,19 @@ public class GameService {
     private ParticipationRepository participationRepository;
 
     /**
-     * 모든 게임 조회
+     * 모든 게임 조회 (참여자 목록 포함)
      */
     public List<GameResponse> getAllGames() {
-        return gameRepository.findAll().stream()
+        return gameRepository.findAllWithParticipations().stream()
                 .map(GameResponse::new)
                 .collect(Collectors.toList());
     }
 
     /**
-     * ID로 게임 조회
+     * ID로 게임 조회 (참여자 목록 포함)
      */
     public GameResponse getGameById(Integer gameId) {
-        Game game = gameRepository.findById(gameId)
+        Game game = gameRepository.findByIdWithParticipations(gameId)
                 .orElseThrow(() -> new RuntimeException("게임을 찾을 수 없습니다. ID: " + gameId));
         return new GameResponse(game);
     }
@@ -61,12 +61,13 @@ public class GameService {
         User creator = userRepository.findById(request.getCreatorUserId())
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다. ID: " + request.getCreatorUserId()));
 
-        // Game 생성
+        // Game 생성 (심판은 null로 시작, 게임 참여 API로만 설정 가능)
         Game game = new Game(
                 court,
                 request.getMaxPlayers() != null ? request.getMaxPlayers() : 10,
                 request.getScheduledTime()
         );
+        
         Game savedGame = gameRepository.save(game);
 
         // 생성자를 Participation 테이블에 'player' 역할로 자동 등록
@@ -79,9 +80,12 @@ public class GameService {
         if (savedGame.getCurrentPlayers() >= savedGame.getMaxPlayers()) {
             savedGame.setStatus(GameStatus.모집_완료);
         }
-        Game updatedGame = gameRepository.save(savedGame);
+        gameRepository.save(savedGame);
 
-        return new GameResponse(updatedGame);
+        // 참여자 목록을 포함하여 다시 조회
+        Game finalGame = gameRepository.findByIdWithParticipations(savedGame.getGameId())
+                .orElseThrow(() -> new RuntimeException("게임 조회 실패"));
+        return new GameResponse(finalGame);
     }
 
     /**
@@ -153,8 +157,12 @@ public class GameService {
                 .orElseThrow(() -> new RuntimeException("게임을 찾을 수 없습니다. ID: " + gameId));
         
         game.setStatus(status);
-        Game updatedGame = gameRepository.save(game);
-        return new GameResponse(updatedGame);
+        gameRepository.save(game);
+        
+        // 참여자 목록을 포함하여 다시 조회
+        Game finalGame = gameRepository.findByIdWithParticipations(gameId)
+                .orElseThrow(() -> new RuntimeException("게임 조회 실패"));
+        return new GameResponse(finalGame);
     }
 
     /**
@@ -178,10 +186,10 @@ public class GameService {
     }
 
     /**
-     * 특정 상태의 게임 목록 조회
+     * 특정 상태의 게임 목록 조회 (참여자 목록 포함)
      */
     public List<GameResponse> getGamesByStatus(GameStatus status) {
-        return gameRepository.findByStatus(status).stream()
+        return gameRepository.findByStatusWithParticipations(status).stream()
                 .map(GameResponse::new)
                 .collect(Collectors.toList());
     }
@@ -238,10 +246,11 @@ public class GameService {
 
         // referee로 참여하는 경우 이미 referee가 있는지 확인 (최대 1명)
         if (request.getRole() == ParticipationRole.referee) {
-            boolean hasReferee = participationRepository.existsByGameGameIdAndRole(gameId, ParticipationRole.referee);
-            if (hasReferee) {
+            if (game.getReferee() != null) {
                 throw new RuntimeException("이미 심판이 등록되어 있습니다. (최대 1명)");
             }
+            // Game 테이블에 심판 설정
+            game.setReferee(user);
         }
 
         // Participation 생성 및 저장
@@ -258,8 +267,12 @@ public class GameService {
             }
         }
 
-        Game updatedGame = gameRepository.save(game);
-        return new GameResponse(updatedGame);
+        gameRepository.save(game);
+        
+        // 참여자 목록을 포함하여 다시 조회
+        Game finalGame = gameRepository.findByIdWithParticipations(gameId)
+                .orElseThrow(() -> new RuntimeException("게임 조회 실패"));
+        return new GameResponse(finalGame);
     }
 }
 
