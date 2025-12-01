@@ -213,6 +213,53 @@ public class GameService {
     }
 
     /**
+     * 게임 참여 취소
+     * 사용자가 게임 참여를 취소합니다.
+     */
+    @Transactional
+    public GameResponse leaveGame(Integer gameId, Integer userId) {
+        // Game 조회
+        Game game = gameRepository.findById(gameId)
+                .orElseThrow(() -> new RuntimeException("게임을 찾을 수 없습니다. ID: " + gameId));
+
+        // User 조회
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다. ID: " + userId));
+
+        // Participation 조회
+        Participation participation = participationRepository.findByGameIdAndUserId(gameId, userId)
+                .orElseThrow(() -> new RuntimeException("참여 내역을 찾을 수 없습니다."));
+
+        // 역할 확인
+        ParticipationRole role = participation.getRole();
+
+        // Participation 삭제
+        participationRepository.delete(participation);
+
+        // player였던 경우 currentPlayers 감소
+        if (role == ParticipationRole.player) {
+            game.setCurrentPlayers(game.getCurrentPlayers() - 1);
+            
+            // 모집_완료 상태에서 인원이 줄면 모집_중으로 변경
+            if (game.getStatus() == GameStatus.모집_완료 && game.getCurrentPlayers() < game.getMaxPlayers()) {
+                game.setStatus(GameStatus.모집_중);
+            }
+        }
+
+        // referee였던 경우 Game 테이블의 referee 필드를 null로 설정
+        if (role == ParticipationRole.referee) {
+            game.setReferee(null);
+        }
+
+        gameRepository.save(game);
+
+        // 참여자 목록을 포함하여 다시 조회
+        Game finalGame = gameRepository.findByIdWithParticipations(gameId)
+                .orElseThrow(() -> new RuntimeException("게임 조회 실패"));
+        return new GameResponse(finalGame);
+    }
+
+    /**
      * 게임 참여 (핵심 기능)
      * 사용자가 원하는 역할(player, referee, spectator)로 게임에 참여
      */

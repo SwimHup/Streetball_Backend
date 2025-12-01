@@ -39,9 +39,10 @@ public class GameResponse {
             this.refereeId = game.getReferee().getUserId();
         }
         
-        // 참여자 목록 (referee 제외, player와 spectator만 포함)
+        // 참여자 목록 (referee 제외, player와 spectator만 포함, 참여 시간순 정렬)
         this.playerIds = game.getParticipations().stream()
                 .filter(p -> p.getRole() != ParticipationRole.referee)
+                .sorted((p1, p2) -> p1.getJoinedAt().compareTo(p2.getJoinedAt()))
                 .map(p -> p.getUser().getUserId())
                 .collect(Collectors.toList());
         

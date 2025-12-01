@@ -145,6 +145,25 @@ public class GameController {
         }
     }
 
+    @Operation(summary = "게임 참여 취소 ⭐", description = "사용자가 게임 참여를 취소합니다. 참여 취소 후 다시 참여하면 참여자 목록 끝에 추가됩니다.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "취소 성공"),
+        @ApiResponse(responseCode = "400", description = "잘못된 요청 (참여 내역 없음 등)")
+    })
+    @DeleteMapping("/{gameId}/leave")
+    public ResponseEntity<GameResponse> leaveGame(
+            @Parameter(description = "게임 ID", required = true, example = "1")
+            @PathVariable Integer gameId,
+            @Parameter(description = "사용자 ID", required = true, example = "5")
+            @RequestParam Integer userId) {
+        try {
+            GameResponse updatedGame = gameService.leaveGame(gameId, userId);
+            return ResponseEntity.ok(updatedGame);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
+    }
+
     @Operation(summary = "심판 있는 게임 조회 ⭐", description = "심판이 등록된 모집 중인 게임 목록을 조회합니다.")
     @ApiResponse(responseCode = "200", description = "조회 성공")
     @GetMapping("/with-referee")
