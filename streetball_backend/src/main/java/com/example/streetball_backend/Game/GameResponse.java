@@ -16,6 +16,7 @@ public class GameResponse {
     private LocalDateTime scheduledTime;
     private LocalDateTime createdAt;
     private Integer refereeId;
+    private Integer hostId;  // 방장 (playerIds의 첫 번째 참여자)
     private List<Integer> playerIds;
     private Double locationLat;
     private Double locationLng;
@@ -45,6 +46,11 @@ public class GameResponse {
                 .sorted((p1, p2) -> p1.getJoinedAt().compareTo(p2.getJoinedAt()))
                 .map(p -> p.getUser().getUserId())
                 .collect(Collectors.toList());
+        
+        // 방장 (playerIds의 첫 번째 참여자)
+        if (!this.playerIds.isEmpty()) {
+            this.hostId = this.playerIds.get(0);
+        }
         
         // 위도/경도
         this.locationLat = game.getLocationLat();
@@ -122,6 +128,14 @@ public class GameResponse {
 
     public void setRefereeId(Integer refereeId) {
         this.refereeId = refereeId;
+    }
+
+    public Integer getHostId() {
+        return hostId;
+    }
+
+    public void setHostId(Integer hostId) {
+        this.hostId = hostId;
     }
 
     public List<Integer> getPlayerIds() {
