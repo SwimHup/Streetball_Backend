@@ -58,7 +58,12 @@ public class GameResponse {
         this.courtId = game.getCourt().getCourtId();
         this.courtName = game.getCourt().getCourtName();
         this.maxPlayers = game.getMaxPlayers();
-        this.currentPlayers = game.getCurrentPlayers();
+        
+        // 현재 player 수를 participations에서 직접 계산 (player 역할만 카운트)
+        this.currentPlayers = (int) game.getParticipations().stream()
+                .filter(p -> p.getRole() == ParticipationRole.player)
+                .count();
+        
         this.status = game.getStatus();
         this.scheduledTime = game.getScheduledTime();
         this.createdAt = game.getCreatedAt();
