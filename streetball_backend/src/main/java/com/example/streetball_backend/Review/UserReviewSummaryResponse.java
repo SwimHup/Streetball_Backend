@@ -29,9 +29,9 @@ public class UserReviewSummaryResponse {
     public UserReviewSummaryResponse() {
     }
 
-    public UserReviewSummaryResponse(Review review) {
+    public UserReviewSummaryResponse(Review review, String userName) {
         this.userId = review.getUserId();
-        this.userName = review.getUser().getName();
+        this.userName = userName;
         this.playScore = review.getPlayScore();
         this.playCount = review.getPlayCount();
         this.refScore = review.getRefScore();

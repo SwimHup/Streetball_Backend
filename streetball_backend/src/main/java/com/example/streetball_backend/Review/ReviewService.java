@@ -3,7 +3,6 @@ package com.example.streetball_backend.Review;
 import com.example.streetball_backend.Game.Game;
 import com.example.streetball_backend.Game.GameRepository;
 import com.example.streetball_backend.Game.GameStatus;
-import com.example.streetball_backend.Participation.Participation;
 import com.example.streetball_backend.Participation.ParticipationRepository;
 import com.example.streetball_backend.Review.exception.*;
 import com.example.streetball_backend.User.User;
@@ -141,21 +140,28 @@ public class ReviewService {
     /**
      * 특정 사용자가 받은 평점 요약 조회
      */
-    @Transactional(readOnly = true)
+    @Transactional
     public UserReviewSummaryResponse getUserReviewSummary(Integer userId) {
-        // User 존재 확인
+        // User 존재 확인 및 조회
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
         // Review 조회 또는 생성
         Review review = reviewRepository.findById(userId).orElse(null);
         if (review == null) {
-            review = new Review(user);
+            review = new Review();
             review.setUserId(userId);
+            review.setPlayScore(BigDecimal.ZERO);
+            review.setPlayCount(0);
+            review.setRefScore(BigDecimal.ZERO);
+            review.setRefCount(0);
             review = reviewRepository.save(review);
+            review.markNotNew();
+        } else {
+            review.markNotNew();
         }
 
-        return new UserReviewSummaryResponse(review);
+        return new UserReviewSummaryResponse(review, user.getName());
     }
 
     /**
@@ -218,15 +224,23 @@ public class ReviewService {
      * Review 통계 업데이트 (평균 평점 및 개수)
      */
     private void updateReviewStatistics(Integer userId, RatingRole role) {
-        User user = userRepository.findById(userId)
+        // User 존재 확인
+        userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
         // Review 조회 또는 생성
         Review review = reviewRepository.findById(userId).orElse(null);
+        boolean isNewReview = false;
         if (review == null) {
-            review = new Review(user);
+            review = new Review();
             review.setUserId(userId);
-            review = reviewRepository.save(review);
+            review.setPlayScore(BigDecimal.ZERO);
+            review.setPlayCount(0);
+            review.setRefScore(BigDecimal.ZERO);
+            review.setRefCount(0);
+            isNewReview = true;
+        } else {
+            review.markNotNew();
         }
 
         // 해당 역할의 평점 통계 재계산
@@ -245,7 +259,10 @@ public class ReviewService {
             review.setRefCount(count != null ? count.intValue() : 0);
         }
 
-        reviewRepository.save(review);
+        review = reviewRepository.save(review);
+        if (isNewReview) {
+            review.markNotNew();
+        }
     }
 }
 

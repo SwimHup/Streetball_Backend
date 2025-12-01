@@ -1,22 +1,20 @@
 package com.example.streetball_backend.Review;
 
-import com.example.streetball_backend.User.User;
 import jakarta.persistence.*;
+import org.springframework.data.domain.Persistable;
 
 import java.math.BigDecimal;
 
 @Entity
 @Table(name = "Review")
-public class Review {
+public class Review implements Persistable<Integer> {
 
     @Id
     @Column(name = "user_id")
     private Integer userId;
-
-    @OneToOne(fetch = FetchType.LAZY)
-    @MapsId
-    @JoinColumn(name = "user_id")
-    private User user;
+    
+    @Transient
+    private boolean isNew = true;
 
     @Column(name = "play_score", precision = 3, scale = 2)
     private BigDecimal playScore = BigDecimal.ZERO;
@@ -34,13 +32,19 @@ public class Review {
     public Review() {
     }
 
-    public Review(User user) {
-        this.user = user;
-        this.userId = user.getUserId();
-        this.playScore = BigDecimal.ZERO;
-        this.playCount = 0;
-        this.refScore = BigDecimal.ZERO;
-        this.refCount = 0;
+    // Persistable 인터페이스 구현
+    @Override
+    public Integer getId() {
+        return userId;
+    }
+
+    @Override
+    public boolean isNew() {
+        return isNew;
+    }
+    
+    public void markNotNew() {
+        this.isNew = false;
     }
 
     // Getters and Setters
@@ -50,14 +54,6 @@ public class Review {
 
     public void setUserId(Integer userId) {
         this.userId = userId;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
     }
 
     public BigDecimal getPlayScore() {
