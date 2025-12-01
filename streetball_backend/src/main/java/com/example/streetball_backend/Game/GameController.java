@@ -175,9 +175,10 @@ public class GameController {
         }
     }
 
-    @Operation(summary = "게임 참여 취소 ⭐", description = "사용자가 게임 참여를 취소합니다. 참여 취소 후 다시 참여하면 참여자 목록 끝에 추가됩니다.")
+    @Operation(summary = "게임 참여 취소 ⭐", description = "사용자가 게임 참여를 취소합니다. 참여 취소 후 다시 참여하면 참여자 목록 끝에 추가됩니다. 모든 참여자가 나가면 게임이 자동으로 삭제됩니다.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "취소 성공"),
+        @ApiResponse(responseCode = "204", description = "취소 성공 및 게임 자동 삭제 (참여자 0명)"),
         @ApiResponse(responseCode = "400", description = "잘못된 요청 (참여 내역 없음 등)")
     })
     @DeleteMapping("/{gameId}/leave")
@@ -188,6 +189,12 @@ public class GameController {
             @RequestParam Integer userId) {
         try {
             GameResponse updatedGame = gameService.leaveGame(gameId, userId);
+            
+            // 게임이 삭제된 경우 (참여자 0명)
+            if (updatedGame == null) {
+                return ResponseEntity.noContent().build(); // 204 No Content
+            }
+            
             return ResponseEntity.ok(updatedGame);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);

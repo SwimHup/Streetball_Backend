@@ -257,6 +257,13 @@ public class GameService {
             game.setReferee(null);
         }
 
+        // 참여자가 0명이 되면 게임 자동 삭제
+        if (game.getCurrentPlayers() == 0) {
+            gameRepository.delete(game);
+            System.out.println("게임 ID " + gameId + "의 모든 참여자가 나가서 게임이 자동 삭제되었습니다.");
+            return null; // 게임이 삭제되었음을 알림
+        }
+
         gameRepository.save(game);
 
         // 참여자 목록을 포함하여 다시 조회
