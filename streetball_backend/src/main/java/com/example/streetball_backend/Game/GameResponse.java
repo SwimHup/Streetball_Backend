@@ -34,14 +34,14 @@ public class GameResponse {
     @Schema(description = "생성 시간", example = "2025-12-01T10:30:00")
     private LocalDateTime createdAt;
     
-    @Schema(description = "심판 ID (null 가능)", example = "8")
-    private Integer refereeId;
+    @Schema(description = "심판 name (null 가능)", example = "test")
+    private String referee;
     
-    @Schema(description = "방장 ID (첫 번째 참여자)", example = "5")
-    private Integer hostId;
+    @Schema(description = "방장 name (첫 번째 참여자)", example = "test")
+    private String hostName;
     
-    @Schema(description = "참여자 ID 목록 (referee 제외)", example = "[5, 6, 7]")
-    private List<Integer> playerIds;
+    @Schema(description = "참여자 목록 (referee 제외)", example = "[test, test2, test3]")
+    private List<String> playerNames;
     
     @Schema(description = "위도", example = "37.5665")
     private Double locationLat;
@@ -65,19 +65,19 @@ public class GameResponse {
         
         // 심판 정보
         if (game.getReferee() != null) {
-            this.refereeId = game.getReferee().getUserId();
+            this.referee = game.getReferee().getName();
         }
         
         // 참여자 목록 (referee 제외, player와 spectator만 포함, 참여 시간순 정렬)
-        this.playerIds = game.getParticipations().stream()
+        this.playerNames = game.getParticipations().stream()
                 .filter(p -> p.getRole() != ParticipationRole.referee)
                 .sorted((p1, p2) -> p1.getJoinedAt().compareTo(p2.getJoinedAt()))
-                .map(p -> p.getUser().getUserId())
+                .map(p -> p.getUser().getName())
                 .collect(Collectors.toList());
         
-        // 방장 (playerIds의 첫 번째 참여자)
-        if (!this.playerIds.isEmpty()) {
-            this.hostId = this.playerIds.get(0);
+        // 방장 (playerNames의 첫 번째 참여자)
+        if (!this.playerNames.isEmpty()) {
+            this.hostName = this.playerNames.get(0);
         }
         
         // 위도/경도
@@ -150,28 +150,28 @@ public class GameResponse {
         this.createdAt = createdAt;
     }
 
-    public Integer getRefereeId() {
-        return refereeId;
+    public String getReferee() {
+        return referee;
     }
 
-    public void setRefereeId(Integer refereeId) {
-        this.refereeId = refereeId;
+    public void setReferee(String referee) {
+        this.referee = referee;
     }
 
-    public Integer getHostId() {
-        return hostId;
+    public String getHostName() {
+        return hostName;
     }
 
-    public void setHostId(Integer hostId) {
-        this.hostId = hostId;
+    public void setHostName(String hostName) {
+        this.hostName = hostName;
     }
 
-    public List<Integer> getPlayerIds() {
-        return playerIds;
+    public List<String> getPlayerNames() {
+        return playerNames;
     }
 
-    public void setPlayerIds(List<Integer> playerIds) {
-        this.playerIds = playerIds;
+    public void setPlayerNames(List<String> playerNames) {
+        this.playerNames = playerNames;
     }
 
     public Double getLocationLat() {
