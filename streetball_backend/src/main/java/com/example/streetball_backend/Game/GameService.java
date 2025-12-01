@@ -8,9 +8,11 @@ import com.example.streetball_backend.Participation.ParticipationRole;
 import com.example.streetball_backend.User.User;
 import com.example.streetball_backend.User.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -320,6 +322,34 @@ public class GameService {
         Game finalGame = gameRepository.findByIdWithParticipations(gameId)
                 .orElseThrow(() -> new RuntimeException("게임 조회 실패"));
         return new GameResponse(finalGame);
+    }
+    
+    /**
+     * 게임 상태 변경 (scheduledTime 기준 1시간 이후 게임 상태 변경)
+     * 1분마다 실행되어 종료되어야 할 게임을 자동으로 '게임_종료' 상태로 변경합니다.
+     */
+    @Scheduled(fixedRate = 60000) // 1분(60000ms)마다 실행
+    @Transactional
+    public void updateExpiredGames() {
+        LocalDateTime now = LocalDateTime.now();
+        
+        // scheduledTime + 1시간이 지난 게임들을 조회
+        // '게임_종료'가 아닌 모든 게임을 대상으로 함
+        List<Game> allGames = gameRepository.findAll();
+        
+        for (Game game : allGames) {
+            // 이미 게임_종료 상태가 아니고, scheduledTime + 1시간이 지난 경우
+            if (game.getStatus() != GameStatus.게임_종료 
+                && game.getScheduledTime() != null 
+                && now.isAfter(game.getScheduledTime().plusHours(1))) {
+                
+                game.setStatus(GameStatus.게임_종료);
+                gameRepository.save(game);
+                
+                System.out.println("게임 ID " + game.getGameId() + "이(가) 자동으로 종료되었습니다. (예정 시간: " 
+                    + game.getScheduledTime() + ")");
+            }
+        }
     }
 }
 
