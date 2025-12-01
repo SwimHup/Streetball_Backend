@@ -64,7 +64,7 @@ public class GameController {
 
     @Operation(summary = "근처 게임 검색 ⭐", description = "현재 위치에서 지정된 반경 내의 '모집 중' 게임을 검색합니다. Haversine 공식을 사용하여 정확한 거리를 계산합니다.")
     @ApiResponse(responseCode = "200", description = "검색 성공")
-    @GetMapping("/nearby")
+    @GetMapping("/nearby?lat={lat}&lng={lng}&radius={radius}")
     public ResponseEntity<List<GameResponse>> getNearbyGames(
             @Parameter(description = "현재 위치의 위도", required = true, example = "37.5665")
             @RequestParam Double lat,

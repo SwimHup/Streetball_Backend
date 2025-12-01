@@ -159,13 +159,22 @@ public class GameService {
 
     /**
      * 게임 삭제
+     * 게임 삭제 전에 관련된 모든 Participation 레코드를 먼저 삭제합니다.
      */
     @Transactional
     public void deleteGame(Integer gameId) {
-        if (!gameRepository.existsById(gameId)) {
-            throw new RuntimeException("게임을 찾을 수 없습니다. ID: " + gameId);
+        // 게임 존재 여부 확인
+        Game game = gameRepository.findById(gameId)
+                .orElseThrow(() -> new RuntimeException("게임을 찾을 수 없습니다. ID: " + gameId));
+        
+        // 관련된 모든 Participation 레코드 삭제
+        List<Participation> participations = participationRepository.findByGameGameId(gameId);
+        if (!participations.isEmpty()) {
+            participationRepository.deleteAll(participations);
         }
-        gameRepository.deleteById(gameId);
+        
+        // 게임 삭제
+        gameRepository.delete(game);
     }
 
     /**
