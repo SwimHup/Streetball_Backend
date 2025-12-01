@@ -148,11 +148,12 @@ public class ReviewService {
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
         // Review 조회 또는 생성
-        Review review = reviewRepository.findById(userId)
-                .orElseGet(() -> {
-                    Review newReview = new Review(user);
-                    return reviewRepository.save(newReview);
-                });
+        Review review = reviewRepository.findById(userId).orElse(null);
+        if (review == null) {
+            review = new Review(user);
+            review.setUserId(userId);
+            review = reviewRepository.save(review);
+        }
 
         return new UserReviewSummaryResponse(review);
     }
@@ -221,11 +222,12 @@ public class ReviewService {
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
         // Review 조회 또는 생성
-        Review review = reviewRepository.findById(userId)
-                .orElseGet(() -> {
-                    Review newReview = new Review(user);
-                    return reviewRepository.save(newReview);
-                });
+        Review review = reviewRepository.findById(userId).orElse(null);
+        if (review == null) {
+            review = new Review(user);
+            review.setUserId(userId);
+            review = reviewRepository.save(review);
+        }
 
         // 해당 역할의 평점 통계 재계산
         Double avgRating = gameRatingRepository.getAverageRatingByUserIdAndRole(userId, role);
