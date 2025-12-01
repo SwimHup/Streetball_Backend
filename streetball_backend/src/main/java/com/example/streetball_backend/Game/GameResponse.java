@@ -1,24 +1,52 @@
 package com.example.streetball_backend.Game;
 
 import com.example.streetball_backend.Participation.ParticipationRole;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Schema(description = "게임 응답")
 public class GameResponse {
+    
+    @Schema(description = "게임 ID", example = "1")
     private Integer gameId;
+    
+    @Schema(description = "코트 ID", example = "10")
     private Integer courtId;
+    
+    @Schema(description = "코트 이름", example = "서울 농구장")
     private String courtName;
+    
+    @Schema(description = "최대 인원", example = "10")
     private Integer maxPlayers;
+    
+    @Schema(description = "현재 인원", example = "3")
     private Integer currentPlayers;
+    
+    @Schema(description = "게임 상태", example = "모집_중")
     private GameStatus status;
+    
+    @Schema(description = "예정 시간", example = "2025-12-05T14:00:00")
     private LocalDateTime scheduledTime;
+    
+    @Schema(description = "생성 시간", example = "2025-12-01T10:30:00")
     private LocalDateTime createdAt;
+    
+    @Schema(description = "심판 ID (null 가능)", example = "8")
     private Integer refereeId;
-    private Integer hostId;  // 방장 (playerIds의 첫 번째 참여자)
+    
+    @Schema(description = "방장 ID (첫 번째 참여자)", example = "5")
+    private Integer hostId;
+    
+    @Schema(description = "참여자 ID 목록 (referee 제외)", example = "[5, 6, 7]")
     private List<Integer> playerIds;
+    
+    @Schema(description = "위도", example = "37.5665")
     private Double locationLat;
+    
+    @Schema(description = "경도", example = "126.9780")
     private Double locationLng;
 
     // Constructors

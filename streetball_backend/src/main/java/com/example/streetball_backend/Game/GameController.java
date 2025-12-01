@@ -1,7 +1,13 @@
 package com.example.streetball_backend.Game;
 
+import com.example.streetball_backend.Game.exception.AlreadyParticipatingException;
+import com.example.streetball_backend.Game.exception.GameFullException;
+import com.example.streetball_backend.Game.exception.GameNotRecruitingException;
+import com.example.streetball_backend.Game.exception.RefereeAlreadyExistsException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -128,11 +134,17 @@ public class GameController {
 
     @Operation(summary = "게임 참여 ⭐", description = "사용자가 원하는 역할(player, referee, spectator)로 게임에 참여합니다. 선착순으로 참여할 수 있습니다.")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "참여 성공"),
-        @ApiResponse(responseCode = "400", description = "잘못된 요청 (최대 인원 초과, 이미 참여함 등)")
+        @ApiResponse(responseCode = "200", description = "참여 성공",
+                content = @Content(schema = @Schema(implementation = GameResponse.class))),
+        @ApiResponse(responseCode = "400", description = "모집 중인 게임이 아님",
+                content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+        @ApiResponse(responseCode = "404", description = "게임 또는 사용자를 찾을 수 없음",
+                content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+        @ApiResponse(responseCode = "409", description = "이미 참여함 / 최대 인원 초과 / 심판 이미 존재",
+                content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @PostMapping("/{gameId}/join")
-    public ResponseEntity<GameResponse> joinGame(
+    public ResponseEntity<?> joinGame(
             @Parameter(description = "게임 ID", required = true, example = "1")
             @PathVariable Integer gameId,
             @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "게임 참여 정보", required = true)
@@ -140,8 +152,26 @@ public class GameController {
         try {
             GameResponse updatedGame = gameService.joinGame(gameId, request);
             return ResponseEntity.ok(updatedGame);
+        } catch (AlreadyParticipatingException e) {
+            // 409 Conflict - 이미 참여함
+            ErrorResponse error = new ErrorResponse("ALREADY_PARTICIPATING", e.getMessage());
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+        } catch (GameFullException e) {
+            // 409 Conflict - 최대 인원 초과
+            ErrorResponse error = new ErrorResponse("GAME_FULL", e.getMessage());
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+        } catch (RefereeAlreadyExistsException e) {
+            // 409 Conflict - 심판 이미 존재
+            ErrorResponse error = new ErrorResponse("REFEREE_ALREADY_EXISTS", e.getMessage());
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+        } catch (GameNotRecruitingException e) {
+            // 400 Bad Request - 모집 중이 아님
+            ErrorResponse error = new ErrorResponse("GAME_NOT_RECRUITING", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+            // 404 Not Found - 게임 또는 사용자를 찾을 수 없음
+            ErrorResponse error = new ErrorResponse("NOT_FOUND", e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
         }
     }
 

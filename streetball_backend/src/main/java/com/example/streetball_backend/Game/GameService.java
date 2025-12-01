@@ -2,6 +2,10 @@ package com.example.streetball_backend.Game;
 
 import com.example.streetball_backend.Court.Court;
 import com.example.streetball_backend.Court.CourtRepository;
+import com.example.streetball_backend.Game.exception.AlreadyParticipatingException;
+import com.example.streetball_backend.Game.exception.GameFullException;
+import com.example.streetball_backend.Game.exception.GameNotRecruitingException;
+import com.example.streetball_backend.Game.exception.RefereeAlreadyExistsException;
 import com.example.streetball_backend.Participation.Participation;
 import com.example.streetball_backend.Participation.ParticipationRepository;
 import com.example.streetball_backend.Participation.ParticipationRole;
@@ -277,26 +281,26 @@ public class GameService {
 
         // 게임 상태 확인 (모집 중인 게임만 참여 가능)
         if (game.getStatus() != GameStatus.모집_중) {
-            throw new RuntimeException("모집 중인 게임만 참여할 수 있습니다.");
+            throw new GameNotRecruitingException("모집 중인 게임만 참여할 수 있습니다.");
         }
 
         // 이미 참여했는지 확인
         boolean alreadyParticipating = participationRepository.existsByGameAndUser(game, user);
         if (alreadyParticipating) {
-            throw new RuntimeException("이미 참여한 게임입니다.");
+            throw new AlreadyParticipatingException("이미 참여한 게임입니다.");
         }
 
         // player로 참여하는 경우 최대 인원 확인
         if (request.getRole() == ParticipationRole.player) {
             if (game.getCurrentPlayers() >= game.getMaxPlayers()) {
-                throw new RuntimeException("최대 인원에 도달했습니다.");
+                throw new GameFullException("최대 인원에 도달했습니다.");
             }
         }
 
         // referee로 참여하는 경우 이미 referee가 있는지 확인 (최대 1명)
         if (request.getRole() == ParticipationRole.referee) {
             if (game.getReferee() != null) {
-                throw new RuntimeException("이미 심판이 등록되어 있습니다. (최대 1명)");
+                throw new RefereeAlreadyExistsException("이미 심판이 등록되어 있습니다. (최대 1명)");
             }
             // Game 테이블에 심판 설정
             game.setReferee(user);
