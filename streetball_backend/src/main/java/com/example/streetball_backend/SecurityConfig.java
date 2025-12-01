@@ -36,7 +36,8 @@ public class SecurityConfig {
         // 허용할 출처 (origins)
         configuration.setAllowedOrigins(Arrays.asList(
             "http://localhost:3000",
-            "http://localhost:5173"
+            "http://localhost:5173", 
+            "https://streetball-frontend.vercel.app/"
         ));
         
         // 허용할 HTTP 메서드
