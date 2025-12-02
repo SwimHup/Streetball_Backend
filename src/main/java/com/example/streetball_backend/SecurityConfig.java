@@ -33,11 +33,11 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         
-        // 허용할 출처 (origins)
-        configuration.setAllowedOrigins(Arrays.asList(
+        // 허용할 출처 (origins) - allowCredentials와 함께 사용 시 패턴 사용
+        configuration.setAllowedOriginPatterns(Arrays.asList(
             "http://localhost:3000",
-            "http://localhost:5173", 
-            "https://streetball-frontend.vercel.app/"
+            "http://localhost:5173",
+            "https://streetball-frontend.vercel.app"
         ));
         
         // 허용할 HTTP 메서드
@@ -46,8 +46,14 @@ public class SecurityConfig {
         // 허용할 헤더
         configuration.setAllowedHeaders(Arrays.asList("*"));
         
-        // 인증 정보 포함 여부
+        // 인증 정보 포함 여부 (쿠키, 인증 헤더 등)
         configuration.setAllowCredentials(true);
+        
+        // 브라우저에 노출할 헤더
+        configuration.setExposedHeaders(Arrays.asList("Authorization", "Content-Type"));
+        
+        // preflight 요청 캐시 시간 (초)
+        configuration.setMaxAge(3600L);
         
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
