@@ -3,6 +3,7 @@ package com.example.streetball_backend.Game;
 import com.example.streetball_backend.Game.exception.AlreadyParticipatingException;
 import com.example.streetball_backend.Game.exception.GameFullException;
 import com.example.streetball_backend.Game.exception.GameNotRecruitingException;
+import com.example.streetball_backend.Game.exception.GameTimeConflictException;
 import com.example.streetball_backend.Game.exception.RefereeAlreadyExistsException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -54,15 +55,21 @@ public class GameController {
     @Operation(summary = "새 게임 생성 ⭐", description = "새로운 게임을 생성하고 생성자를 자동으로 'player' 역할로 참여시킵니다.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "201", description = "생성 성공"),
-        @ApiResponse(responseCode = "400", description = "잘못된 요청 (courtId 또는 creatorUserId가 존재하지 않음)")
+        @ApiResponse(responseCode = "400", description = "잘못된 요청 (courtId 또는 creatorUserId가 존재하지 않음)"),
+        @ApiResponse(responseCode = "409", description = "시간 충돌 (같은 농구장에 겹치는 시간대의 경기 존재)",
+                content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @PostMapping
-    public ResponseEntity<GameResponse> createGame(
+    public ResponseEntity<?> createGame(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "게임 생성 정보", required = true)
             @RequestBody GameCreationRequest request) {
         try {
             GameResponse createdGame = gameService.createGame(request);
             return ResponseEntity.status(HttpStatus.CREATED).body(createdGame);
+        } catch (GameTimeConflictException e) {
+            // 409 Conflict - 시간 충돌
+            ErrorResponse error = new ErrorResponse("GAME_TIME_CONFLICT", e.getMessage());
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }

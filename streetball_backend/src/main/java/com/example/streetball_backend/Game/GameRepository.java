@@ -48,5 +48,15 @@ public interface GameRepository extends JpaRepository<Game, Integer> {
     @Query("SELECT DISTINCT g FROM Game g LEFT JOIN FETCH g.participations WHERE g.referee IS NULL " +
            "AND g.status = com.example.streetball_backend.Game.GameStatus.모집_중")
     List<Game> findGamesWithoutReferee();
+    
+    // 같은 코트에서 시간이 겹치는 게임 조회 (게임_종료 상태 제외)
+    // 새 게임의 scheduledTime이 기존 게임의 [scheduledTime - 1시간, scheduledTime + 1시간] 범위에 겹치면 충돌
+    @Query("SELECT g FROM Game g WHERE g.court.courtId = :courtId " +
+           "AND g.status != com.example.streetball_backend.Game.GameStatus.게임_종료 " +
+           "AND g.scheduledTime BETWEEN :startTime AND :endTime")
+    List<Game> findConflictingGames(
+            @Param("courtId") Integer courtId,
+            @Param("startTime") LocalDateTime startTime,
+            @Param("endTime") LocalDateTime endTime);
 }
 

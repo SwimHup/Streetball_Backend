@@ -5,6 +5,7 @@ import com.example.streetball_backend.Court.CourtRepository;
 import com.example.streetball_backend.Game.exception.AlreadyParticipatingException;
 import com.example.streetball_backend.Game.exception.GameFullException;
 import com.example.streetball_backend.Game.exception.GameNotRecruitingException;
+import com.example.streetball_backend.Game.exception.GameTimeConflictException;
 import com.example.streetball_backend.Game.exception.RefereeAlreadyExistsException;
 import com.example.streetball_backend.Participation.Participation;
 import com.example.streetball_backend.Participation.ParticipationRepository;
@@ -66,6 +67,21 @@ public class GameService {
         // User 조회
         User creator = userRepository.findById(request.getCreatorUserId())
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다. ID: " + request.getCreatorUserId()));
+
+        // 같은 농구장에서 시간이 겹치는 게임이 있는지 확인 (게임 진행 시간 1시간 기준)
+        LocalDateTime scheduledTime = request.getScheduledTime();
+        LocalDateTime startTime = scheduledTime.minusHours(1);
+        LocalDateTime endTime = scheduledTime.plusHours(1);
+        
+        List<Game> conflictingGames = gameRepository.findConflictingGames(
+                request.getCourtId(), startTime, endTime);
+        
+        if (!conflictingGames.isEmpty()) {
+            Game conflictGame = conflictingGames.get(0);
+            throw new GameTimeConflictException(
+                    String.format("해당 농구장에 이미 겹치는 시간대의 경기가 있습니다. (기존 경기 시간: %s)",
+                            conflictGame.getScheduledTime().toString()));
+        }
 
         // Game 생성 (심판은 null로 시작, 게임 참여 API로만 설정 가능)
         Game game = new Game(
