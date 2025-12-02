@@ -70,17 +70,33 @@ public class GameService {
 
         // 같은 농구장에서 시간이 겹치는 게임이 있는지 확인 (게임 진행 시간 1시간 기준)
         LocalDateTime scheduledTime = request.getScheduledTime();
-        LocalDateTime startTime = scheduledTime.minusHours(1);
-        LocalDateTime endTime = scheduledTime.plusHours(1);
         
-        List<Game> conflictingGames = gameRepository.findConflictingGames(
-                request.getCourtId(), startTime, endTime);
+        // 디버깅 로그 추가
+        System.out.println("=== 게임 생성 시도 ===");
+        System.out.println("코트 ID: " + request.getCourtId());
+        System.out.println("요청한 예정 시간: " + scheduledTime);
         
-        if (!conflictingGames.isEmpty()) {
-            Game conflictGame = conflictingGames.get(0);
-            throw new GameTimeConflictException(
-                    String.format("해당 농구장에 이미 겹치는 시간대의 경기가 있습니다. (기존 경기 시간: %s)",
-                            conflictGame.getScheduledTime().toString()));
+        if (scheduledTime == null) {
+            System.out.println("경고: scheduledTime이 null입니다!");
+        } else {
+            LocalDateTime startTime = scheduledTime.minusHours(1);
+            LocalDateTime endTime = scheduledTime.plusHours(1);
+            
+            System.out.println("충돌 검사 범위: " + startTime + " ~ " + endTime);
+            
+            List<Game> conflictingGames = gameRepository.findConflictingGames(
+                    request.getCourtId(), startTime, endTime);
+            
+            System.out.println("발견된 충돌 게임 수: " + conflictingGames.size());
+            
+            if (!conflictingGames.isEmpty()) {
+                Game conflictGame = conflictingGames.get(0);
+                System.out.println("충돌 게임 발견! 기존 게임 시간: " + conflictGame.getScheduledTime());
+                throw new GameTimeConflictException(
+                        String.format("해당 농구장에 이미 겹치는 시간대의 경기가 있습니다. (기존 경기 시간: %s)",
+                                conflictGame.getScheduledTime().toString()));
+            }
+            System.out.println("충돌 게임 없음 - 생성 진행");
         }
 
         // Game 생성 (심판은 null로 시작, 게임 참여 API로만 설정 가능)
