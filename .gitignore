@@ -30,7 +30,7 @@ replay_pid*
 
 # Application Config (contains sensitive information)
 application.yml
-application.properties
+# application.properties
 HELP.md
 .gradle
 build/
