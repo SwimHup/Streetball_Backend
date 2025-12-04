@@ -40,8 +40,11 @@ public class GameResponse {
     @Schema(description = "방장 name (첫 번째 참여자)", example = "test")
     private String hostName;
     
-    @Schema(description = "참여자 목록 (referee 제외)", example = "[test, test2, test3]")
+    @Schema(description = "플레이어 목록", example = "[test, test2, test3]")
     private List<String> playerNames;
+    
+    @Schema(description = "관전자 목록", example = "[spectator1, spectator2]")
+    private List<String> spectatorNames;
     
     @Schema(description = "위도", example = "37.5665")
     private Double locationLat;
@@ -76,9 +79,16 @@ public class GameResponse {
             this.referee = game.getReferee().getName();
         }
         
-        // 참여자 목록 (referee 제외, player와 spectator만 포함, 참여 시간순 정렬)
+        // 플레이어 목록 (player 역할만, 참여 시간순 정렬)
         this.playerNames = game.getParticipations().stream()
-                .filter(p -> p.getRole() != ParticipationRole.referee)
+                .filter(p -> p.getRole() == ParticipationRole.player)
+                .sorted((p1, p2) -> p1.getJoinedAt().compareTo(p2.getJoinedAt()))
+                .map(p -> p.getUser().getName())
+                .collect(Collectors.toList());
+        
+        // 관전자 목록 (spectator 역할만, 참여 시간순 정렬)
+        this.spectatorNames = game.getParticipations().stream()
+                .filter(p -> p.getRole() == ParticipationRole.spectator)
                 .sorted((p1, p2) -> p1.getJoinedAt().compareTo(p2.getJoinedAt()))
                 .map(p -> p.getUser().getName())
                 .collect(Collectors.toList());
@@ -184,6 +194,14 @@ public class GameResponse {
 
     public void setPlayerNames(List<String> playerNames) {
         this.playerNames = playerNames;
+    }
+
+    public List<String> getSpectatorNames() {
+        return spectatorNames;
+    }
+
+    public void setSpectatorNames(List<String> spectatorNames) {
+        this.spectatorNames = spectatorNames;
     }
 
     public Double getLocationLat() {
