@@ -48,6 +48,9 @@ public class GameResponse {
     
     @Schema(description = "경도", example = "126.9780")
     private Double locationLng;
+    
+    @Schema(description = "참여자 중 공을 가진 사람이 있는지 여부", example = "true")
+    private Boolean hasBall;
 
     // Constructors
     public GameResponse() {
@@ -88,6 +91,10 @@ public class GameResponse {
         // 위도/경도
         this.locationLat = game.getLocationLat();
         this.locationLng = game.getLocationLng();
+        
+        // 참여자 중 한 명이라도 공을 가지고 있는지 확인
+        this.hasBall = game.getParticipations().stream()
+                .anyMatch(p -> p.getUser().getHasBall() != null && p.getUser().getHasBall());
     }
 
     // Getters and Setters
@@ -193,6 +200,14 @@ public class GameResponse {
 
     public void setLocationLng(Double locationLng) {
         this.locationLng = locationLng;
+    }
+
+    public Boolean getHasBall() {
+        return hasBall;
+    }
+
+    public void setHasBall(Boolean hasBall) {
+        this.hasBall = hasBall;
     }
 }
 
