@@ -14,6 +14,10 @@ public class SwaggerConfig {
 
     @Bean
     public OpenAPI streetballOpenAPI() {
+        Server prodServer = new Server();
+        prodServer.setUrl("https://streetballbackend-production.up.railway.app");
+        prodServer.setDescription("Railway 프로덕션 서버");
+
         Server localServer = new Server();
         localServer.setUrl("http://localhost:8080");
         localServer.setDescription("로컬 개발 서버");
@@ -39,7 +43,7 @@ public class SwaggerConfig {
 
         return new OpenAPI()
                 .info(info)
-                .servers(List.of(localServer));
+                .servers(List.of(prodServer, localServer));
     }
 }
 

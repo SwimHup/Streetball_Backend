@@ -124,9 +124,11 @@ java -jar build/libs/streetball_backend-0.0.1-SNAPSHOT.jar
 | Production | `https://streetballbackend-production.up.railway.app/api` |
 
 ### Swagger UI
-```
-http://localhost:8080/swagger-ui.html
-```
+
+| 환경 | URL |
+|------|-----|
+| Local | http://localhost:8080/swagger-ui.html |
+| Production | https://streetballbackend-production.up.railway.app/swagger-ui.html |
 
 ### 주요 엔드포인트
 
